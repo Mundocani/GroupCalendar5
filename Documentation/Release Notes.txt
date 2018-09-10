@@ -1,0 +1,491 @@
+Group Calendar 5 features
+
+* Compatible with the built-in calendar and web-based armory calendars
+* View and edit events using local or server dates and times
+* Track tradeskill cooldowns
+* Create partnerships for coordinating events across multiple guilds
+* Reminders for upcoming events and tradeskill cooldowns
+* View events and get reminders while on your alts
+* Easy invite management to track group composition
+* Quickly invite players to the raid from the attendance list
+* Export your calendar to the iCalendar format for use in external applications or web calendars
+* Set level limits and duration for events
+* Analog clock with date on the minimap button for attractive timekeeping
+* Auto-set raid type when doing raid invites/conversion
+
+5.0 bugs, missing features and suggestions
+
+* FEATURE: Remove invite in player menu needs confirmation
+* FEATURE: Need warning when export data is too large
+* FEATURE: Add Setting to switch starting day of week
+* CANT REPRO: Export data include tradeskill and reset events
+* CANT REPRO: Inviting AFK or already-grouped players may cause re-invites to that player to fail
+* CANT REPRO: Guild Announcements may not be deleting correctly
+
+5.1 or later bugs, missing features and suggestions
+
+* BUG: Guild Events don't enforce the level restrictions during signups
+* BUG: Dates display comma instead of period as the separator in Europe and South America languages
+* FEATURE: Version viewer and notifications are not implemented
+* FEATURE: Reports for guild roster, members who didn't respond to an event and event attendance, are not implemented
+* FEATURE: Events need to be scanned in the background to load their details and attendance into the cache
+* FEATURE: Chat notifications when players sign up for your events
+* FEATURE: Auto-close signups
+* FEATURE: Repeating events
+* FEATURE: Auto-confirmations
+* FEATURE: Event templates currently remember invites by player name instead of remembering by guild ranks when appropriate
+* FEATURE: Sort invite tab by name or class
+* FEATURE: Reserve space for specific members in guild events
+* SUGGESTION: Resize calendar window
+* SUGGESTION: Show Accepted players in the totals on the Group tab
+* SUGGESTION: Report of guild members who didn't respond to an event
+* SUGGESTION: Filter out players who sign up with built-in calendar but don't meet level requirements
+* SUGGESTION: Show event creator in schedule tooltips
+* SUGGESTION: Periodic guild announcements of imminent guild events
+
+Version 5.9.1 changes
+
+* FEATURE: Updated for patch 7.3.1 (thank you to kived for the fixes)
+ 
+Version 5.9 changes
+
+* FEATURE: New default calendar background theme "Legion"
+* FEATURE: Old "Sesonal" theme is now available as a separate addon
+* FEATURE: Font in the event viewer is larger
+* FIXED: Minimap clock pulses correctly for new events
+
+Version 5.8.5 changes
+
+* FEATURE: Bumped toc for patch 7.1
+
+Version 5.8.4 changes
+
+* FIXED: The Group tab of an event truncates names correctly
+* FIXED: Using tradeskills with cooldowns no longer generates an error when using the cooldown tracking feature
+
+Version 5.8.3 changes
+
+* FIXED: Tradeskill cooldown tracking uses patch 7 events
+* FIXED: Flashing events no longer causes errors
+
+Version 5.8.2 changes
+
+* FEATURE/FIXED: Tradeskill cooldown tracking works for patch 7 and works with all recipes
+
+Version 5.8.1 changes
+
+* FEATURE: Added support for Demon Hunter
+* FIXED: Class limits show background colors correctly
+
+Version 5.8 changes
+
+* FEATURE: Updated for patch 7
+* FEATURE: Added compatibility with cross-server guilds
+* FEATURE: Added a separate difficulty menu instead of listing all difficulties in the event menu
+
+Version 5.7 changes
+
+* FEATURE: Bumped toc for patch 6.1 (no changes)
+
+Version 5.7b4 changs
+
+* FIXED: Disabled alt mail features since they're no longer compatible
+* FIXED: Changed character limit for level range fields to 3 to allow for level 100
+
+Version 5.7b3 changes
+
+* FIXED: Extended tooltips don't generate errors
+* FIXED: Settings checkboxes work correctly
+
+Version 5.7b2 changes
+
+* FIXED: Added temporary fix from Dridzt to fix invite checkboxes
+* FIXED: Dungeon lists include new expansion
+* FIXED: Buttons are colored correctly
+* FIXED: Pirate's Day and Fireworks display correctly
+
+Version 5.7b1 changes
+
+* FEATURE: Fixed (some) issues with patch 6
+
+Version 5.6 changes
+
+* FEATURE: Removed Arena teams from Invite tab for compatibility with patch 5.4
+* FEATURE: Bumped toc for patch 5.4
+
+Version 5.5.11 changes
+
+* FEATURE: Bumped toc for patch 5.3
+
+Version 5.5.10 changes
+
+* FIXED: Calendar day frames highlight correctly for new events (third time's a charm!)
+
+Version 5.5.9 changes
+
+* FEATURE: Bumped toc for WoW patch 5.2
+* FIXED: Calendar day frames highlight correctly for new events (again)
+
+Version 5.5.8 changes
+
+* FIXED: Calendar day frames highlight correctly for new events
+
+Version 5.5.7 changes
+
+* FIXED: Replaced usage of UIFrameFlash APIs with animation APIs to eliminate taint issues
+
+Version 5.5.6 changes
+
+* FEATURE: Bumped toc for patch 5.1
+
+Version 5.5.5 changes
+
+* FIXED: MoP heroics show up correctly
+
+Version 5.5.4 changes
+
+* FIXED: Fixed UTF8 compatibility bugs (caused problems with extended characters in player/alt names)
+* FIXED: Fixed cause of glyph/talent taint
+* FIXED: Added MoP dungeons/raids
+
+Version 5.5.3 changes
+
+* FIXED: Responding to events (signup, maybe, etc.) works correctly
+* FIXED: Removing events works correctly
+* FIXED: Repaired more instances of _ taint
+
+Version 5.5.2 changes
+
+* FIXED: Mass invite should work correctly
+* FIXED: Saving events works
+
+Version 5.5.1 changes
+
+* FIXED: Tradeskills should no longer cause errors
+* FIXED: Editing/deleting events should no longer cause errors
+
+Version 5.5 changes
+
+* FEATURE: Updated for WoW 5
+* FEATURE: Reduced memory usage
+* FIXED: Fixed various menu taint issues (others still remain)
+* FIXED: Removed hooks into WoW Calendar API (should solve incompatibilities with other addons)
+
+Version 5.4.4 Changes
+
+* FEATURE: Bumped .toc for 4.3 (no issues found)
+
+Version 5.4.3 Changes
+
+* BUGFIX: Fixed crash in attendance panel
+
+Version 5.4.2 Changes
+
+* FEATURE: Bumped .toc for 4.2
+* BUGFIX: Fixed menu system for changes in WoW 4.2
+
+Version 5.4.1 Changes
+
+* FEATURE: Added support for Fire Prism cooldown
+* FEATURE: Bumped .toc for patch 4.1
+
+Version 5.4 Changes
+
+* FEATURE: Added support for Cataclysm dungeons
+* FEATURE: Added Light Parchment theme
+* BUGFIX: Month view background no longer shifts each time a day is selected
+
+Version 5.3.1 Changes
+
+* FEATURE: Added option for turning off the analog clock on the minimap
+* BUGFIX: Fixed error messages when server is slow to provide attendance data
+
+Version 5.3 Changes
+
+* FEATURE: Added setting for starting day-of-week
+* BUGFIX: Fixed spurious error when updating event attendance
+
+Version 5.2.5 Changes
+
+* FEATURE: Updated for WoW 4.0
+* BUGFIX: Fixed errors when opening/closing
+* BUGFIX: Fixed errors when viewing days with a large number of events scheduled
+
+Version 5.2.4 Changes
+
+* FEATURE: Outbound whispers generated by GC5 are no longer shown during raid invites
+
+Version 5.2.3 Changes
+
+* FEATURE: Minimap Clock tooltip shows local date and time when local time is enabled in the calendar
+* BUGFIX: Fixed error when class info isn't available for a player in an event's Group tab
+* BUGFIX: Fixed bug which caused a bright ring to appear around the minimap clock
+* BUGFIX: Fixed bug which caused date and time menus to flake out on first use
+
+Version 5.2.2 Changes
+
+* BUGFIX: Fixed loading error on non-English clients
+
+Version 5.2.1 Changes
+
+* FEATURE: Removed LibBabble-Class in favor of built-in localizations provided by patch 3.2
+* BUGFIX: Fixed crash in Spanish localization
+
+Version 5.2 Changes
+
+* FEATURE: Event invitation memory can be disabled
+* BUGFIX: Improved error handling when processing event invites
+* BUGFIX: Fixed auto-complete on Invite tab
+* BUGFIX: Changes made to an event are not reverted when using the Invite tab
+
+Version 5.1.5 Changes
+
+* BUGFIX: Fixed error when first event created after login is in February
+
+Version 5.1.4 Changes
+
+* FEATURE: Updated German localization (thanks to ReiTung)
+* BUGFIX: Fixed bug causing lockup when attempting to disable reminders
+
+Version 5.1.3 Changes
+
+* BUGFIX: Auto-complete for event titles uses the full name (with difficulty qualifiers)
+* BUGFIX: Tentative event responses are handled correctly for Guild Events
+* BUGFIX: Disabled ability for event creator to change their status through the context menu (not support by WoW APIs)
+
+Version 5.1.2 Changes
+
+* COMPATIBILITY: Dungeon list shows 10/25/40-man labels correctly (patch 3.3 compatibility)
+* COMPATIBILITY: Status can be set from Group tab again (patch 3.3 compatibility)
+* BUGFIX: Maybe checkbox is hidden for guild members on guild events (sucks, but that's how Blizzard made it work)
+* BUGFIX: "Created by" status no longer shows nil
+
+Version 5.1.1 Changes
+
+* BUGFIX: Fixed patch 3.3 compatibility bug
+* BUGFIX: Fixed highlighting bug in date selection
+
+Version 5.1 Changes
+
+* FEATURE: Added support for new Tentative status in patch 3.3
+* FEATURE: Context (right-click) menus available for days and events
+* FEATURE: Fixed compatibility with minimap changes in patch 3.3
+* BUGFIX: Fixed /cal reminder command
+* BUGFIX: Fixed error when creating events and server is slow processing invites
+
+Version 5.1b1 Changes
+
+* FEATURE: "Friends" is localized using WoW strings
+* FEATURE: Updated German localization
+
+Version 5.1b1 Changes
+
+* FEATURE: Added support for new Tentative status in patch 3.3
+* FEATURE: Context (right-click) menus available for days and events
+* FEATURE: Fixed compatibility with minimap changes in patch 3.3
+* BUGFIX: Fixed /cal reminder command
+* BUGFIX: Fixed error when creating events and server is slow processing invites
+
+Version 5.0.1 Changes
+
+* BUGFIX: Fixed German localization (file had somehow regressed to an earlier build)
+
+Version 5.0b13 Changes
+
+* BUGFIX: Fixed bug when calendar is accessed while tradeskill window is opened
+* BUGFIX: Added code to ensure external addons don't interfere with list display in Invite and Group tabs
+
+Version 5.0b12r2 Changes
+
+* BUGFIX: Corrected typo in German localization
+
+Version 5.0b12 Changes
+
+* BUGFIX: Being unguilded no longer causes errors in the Invite tab
+* BUGFIX: Closing event window without saving should no longer give occassional errors
+* BUGFIX: Made /cal command help localizable
+* FEATURE: Updated German localization of /cal help (thanks to ReiTung)
+
+Version 5.0b11 Changes
+
+* FEATURE: Implemented "/cal reset" command
+* FEATURE: Removed Settings tab since I haven't come up with any settings (yet)
+* FEATURE: Disabled class limit code and tags since that feature isn't implemented yet
+* BUGFIX: Fixed level range and duration so they save properly when set to nil
+* BUGFIX: Added check for missing time in event viewer (fixes crash caused by corrupted events from earlier beta)
+* BUGFIX: Event templates with missing titles no longer crash
+
+Version 5.0b10 Changes
+
+* FEATURE: Updated German localization (thanks to ReiTung)
+* BUGFIX: All-day events (birthday and vacation) no longer give errors about missing times
+* BUGFIX: Saved event templates no longer have missing Title fields (fixed errors regarding nil titles)
+
+Version 5.0b9 Changes
+
+* FEATURE: Birthday, Doctor, Dentist, Vacation and Roleplay events added
+* BUGFIX: Calendar highlights the correct date when using local date/time
+* BUGFIX: Today button jumps to the correct date when using local date/time
+* BUGFIX: Assigning moderator to member who hasn't signed up for guild event no longer generates an error
+* BUGFIX: Invite tab no longer shows Moderator button for ineligible players (ie, players not signed up for guild events)
+* BUGFIX: "Signed up" status displays correctly in event viewer (patch 3.2 update)
+* BUGFIX: Date highlight is removed when sidebar window is closed
+* BUGFIX: Events in the past no longer cause the "unseen" reminder to flash when GC5 is first run or reset
+* BUGFIX: Cooldown icons no longer include the icon frame
+* BUGFIX: Clicking a date in the month view toggles the sidebar
+* MAINTENANCE: Replaced old calendar constants with Blizzard-provided globals
+
+Version 5.0b8 Changes
+
+* BUGFIX: Event viewer shows the correct date when using local time
+* BUGFIX: Updated event title processing for changes in patch 3.2
+* FEATURE: Invite tab now lists your own guild on Guild Events so you can see that they're already invited
+* BUGFIX: Invite tab correctly gives errors when inviting your own guild members to Guild Events instead of just hanging
+
+Version 5.0b7 Changes
+
+* BUGFIX: Invites on Guild Events should go out reliably
+* BUGFIX: Expand/collapse buttons on Group categories are enabled correctly (thanks Stephan for help with this)
+* BUGFIX: Removed usage of obsolete WoW auto-complete code in the Partnership and Invite tabs
+* BUGFIX: Unguilded characters no longer get an error when invited to a guild
+* BUGFIX: Event settings are no longer lost while switching modes (guild event, private event, etc.)
+* BUGFIX: Fixed bug causing "assertion failed" messages when changing event modes
+* BUGFIX: Auto-complete on Invite and Partnership interfaces are compatible with patch 3.2
+
+Version 5.0b6 Changes
+
+* BUGFIX: Character name changes work correctly
+* BUGFIX: New events created on the current date no longer come up disabled
+* BUGFIX: Fixed crashes which sometimes occur while using/viewing the Group tab
+* FEATURE: Bumped .toc to patch 3.2
+
+Version 5.0b5 Changes
+
+* BUGFIX: Cooldown events are private once again
+* BUGFIX: Cooldown events no longer show a duration
+* BUGFIX: Guild Events show correct status when player isn't signed up
+* BUGFIX: "No" checkbox works correctly on Guild Events
+* BUGFIX: Status options in Group tab are correct for Guild Events
+
+Version 5.0b4 Changes
+
+* FEATURE: Days with more events than can be shown in the month view show a "more..." message
+* FEATURE: Reminders include the name of your alt if the reminder isn't for the character you're on
+* FEATURE: Default event mode is Guild Event if player has permissions to create guild events
+* FEATURE: Added Moderator Crown UI to Group tab list (while event is not running)
+* FEATURE: Added Moderator item to Group tab player menu
+* BUGFIX: Offline guild members are colored gray in the group tab while the event is running
+* BUGFIX: Player's own guild is no longer listed in the Invite tab for guild-wide events
+* BUGFIX: Editing text fields activates the Apply button without having to tab or click out first
+* BUGFIX: Partnership changes are reflected immediately in the Invite tab
+* BUGFIX: Players can decline their own Guild Events (sets status to "Out", which is the only negative status creators can use)
+* BUGFIX: Edit tab disables its fields when the event is expired
+* BUGFIX: Status displays correctly in the View tab for cached events
+
+Version 5.0b3 Changes
+
+* FEATURE: Added warning to the Delete confirmation that the event will be removed from all calendars
+* FEATURE: Expired events include a note on the View tab stating they can't be modified
+* BUGFIX: Corrected bug which sometimes caused GC5 to open when Blizzard calendar was desired
+* BUGFIX: Defaults loaded by event type will prevent event title from loading defaults, and vice versa
+* BUGFIX: Yes/No attendance buttons are positioned correctly on long descriptions
+* BUGFIX: Description field has scrollbar
+* BUGFIX: View by/Sort by menu is localizable
+* BUGFIX: Labels in the About tab are localizable
+
+Version 5.0b2 Changes
+
+* BUGFIX: New event notification no longer throws an error regarding "ShowIcon"
+* BUGFIX: Error is no longer thrown when server takes too long returning class/level info when inviting
+* BUGFIX: Inviting players to a raid after viewing the Group tab no longer throws an error
+* BUGFIX: Added status message while waiting for server to respond to mass invite request
+* BUGFIX: Weekday labels should be correct for calendars which don't start on Sunday
+
+Version 5.0b1 Changes
+
+* FEATURE: Notification of new events
+* FEATURE: Improved instructions in Parnters tab
+* BUGFIX: Sync'ing with AFK or DND players no longer generates chat spam
+
+Version 5.0d14 Changes
+
+* FEATURE: Guild Partnerships
+* FEATURE: Show/hide alts
+* FEATURE: Show/hide lockouts
+* BUGFIX: Guild events, announcements and arena events for alts no longer display unless the alt is signed up
+* BUGFIX: Duration menu updates correctly
+* BUGFIX: Focus on edit fields is cleared if a menu item is chosen elsewhere
+* BUGFIX: Attendance lists on tooltips now word-wrap
+* BUGFIX: Fixed bug causing an error shortly after closing and event after viewing the group tab
+
+Version 5.0d13 Changes
+
+* BUGFIX: Changing event modes no longer closes the editor
+* BUGFIX: Raid invites should no longer be sent to players who are already in the group or are no longer part of the event
+* BUGFIX: Hooked Level Range fields up again
+* BUGFIX: Moved "New Event" and "Paste Event" strings to localization files
+* BUGFIX: Fixed error sometimes thrown when viewing Groups tab
+* BUGFIX: Corrected "xx players" string in Group tab to use localized strings
+
+Version 5.0d12 Changes
+
+* FEATURE: Added right-click instruction to clock tooltip
+* FEATURE: Added workaround to allow event creators to decline attending their own events during creation
+* FEATURE: Updated German translation (thank you ReiTung)
+* FEATURE: Hooked up Report Spam and Remove Invite buttons
+* FEATURE: Report/Remove buttons adjust their layout if only one is shown
+* FEATURE: Added Select All button to Group tab
+* BUGFIX: Creating an event without a title no longer throws errors
+* BUGFIX: Changed localization of standby button in Group tab for better fit in German
+* BUGFIX: Month view is shows next two events for the day instead of just the first two
+* BUGFIX: Events created in the past on today's day give appropriate error messages
+
+Version 5.0d11 changes
+
+* BUGFIX: Event creation no longer fails
+* BUGFIX: Guild Event and Guild Announcement event modes are now disabled when player doesn't have permission to create them
+* BUGFIX: Adjusted status text baseline in Group tab list
+* BUGFIX: Increased distance between min and max level fields for more localization room
+* BUGFIX: Fixed support for non-Sunday week starts
+
+Version 5.0d10 changes
+
+* FEATURE: Supports weeks starting on Monday (set by WoW)
+* FEATURE: Ported translations for French, German, Traditional and Simplified Chinese, Spanish, Russian and Korean from GC4
+* FEATURE: Guild rosters are cached and shared between alts
+* FEATURE: Added newbie tooltip for moderator buttons in the Invite tab
+* BUGFIX: Showing events in local time no longer causes the month view to display some events twice
+* BUGFIX: Errors when creating an event no longer cause the event to close (no title, etc.)
+* BUGFIX: Description field can be clicked anywhere to give it keyboard focus
+* BUGFIX: Date display on minimap clock works again
+* BUGFIX: Description and level fields no longer get cleared when changing event mode
+* BUGFIX: Event mode can be switched directly from guild event to private event
+
+Version 5.0d9 changes
+
+IMPORTANT: Delete previous versions of Group Calendar 5 from your addons
+folder before installing this release.  The addon has been significantly
+restructured and two of the old three addons have been eliminated (clock
+and UI) and they must be removed or they will interfere with the operation
+of this release.
+
+* FEATURE: Combined the three addons into one
+* FEATURE: Viewing and editing in local date/time is supported
+* FEATURE: New About tab featuring credits and donors
+* FEATURE: Event date can be changed
+* BUGFIX: Minimap clock works again
+
+Version 5.0d8 changes
+
+* BUGFIX: Should no longer get errors when selecting offline players in the Group tab
+* BUGFIX: Fixed event Invite tab for patch 3.1
+* BUGFIX: Finished/fixed Guild Event support
+* BUGFIX: Reset events show an icon
+* BUGFIX: iCalendar export formats all-day event dates correctly
+* BUGFIX: Group tab puts standby players into their own list
+
+Version 5.0d2 changes
+
+* BUGFIX: Event title gets set when choosing an event type
+* BUGFIX: Creating a new event populates the editor fields correctly
+* BUGFIX: Event time is saved correctly for new events

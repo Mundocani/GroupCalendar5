@@ -1,0 +1,81 @@
+﻿## Interface: 80000
+## Title: Group Calendar 5
+## Version: 5.9.1
+## Notes: Enhancements for in-game calendar, (c) 2005 - 2016 John Stephen
+
+## Title-zhTW: |cFFFF6600團體行事曆|r Group Calendar 5
+## Notes-zhTW: 團隊行事曆
+
+## Title-zhCN: |cFFFF6600团体行事历|r Group Calendar 5
+## Notes-zhCN: 团体活动行事历
+
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: GroupCalendar_Data, GroupCalendarClock_Data, GroupCalendarUI_Data
+## OptionalDeps: GuildMains
+
+## X-ReloadTag: 2
+
+GroupCalendar_Prefix.lua
+
+utf8data.lua
+utf8.lua
+
+GroupCalendar_Strings.lua
+GroupCalendar_Strings_cn.lua
+GroupCalendar_Strings_de.lua
+GroupCalendar_Strings_es.lua
+GroupCalendar_Strings_fr.lua
+GroupCalendar_Strings_hu.lua
+GroupCalendar_Strings_kr.lua
+GroupCalendar_Strings_ru.lua
+GroupCalendar_Strings_tw.lua
+
+MC2AddonLib.lua
+MC2DebugLib.lua
+MC2EventLib.lua
+MC2SchedulerLib.lua
+MC2DateLib.lua
+MC2BroadcastLib.lua
+MC2UIElementsLib.lua
+MC2GuildLib.lua
+MC2RaidLib.lua
+
+GC5ScheduleLib.lua
+GC5ClockLib.lua
+
+GroupCalendar.lua
+
+GroupCalendar_MD5.lua
+GroupCalendar_Textures.lua
+GroupCalendar_Character.lua
+GroupCalendar_Cooldowns.lua
+GroupCalendar_Tradeskill.lua
+GroupCalendar_Reminders.lua
+GroupCalendar_Event.lua
+GroupCalendar_Alts.lua
+GroupCalendar_Alliance.lua
+GroupCalendar_iCal.lua
+
+GroupCalendar_Clock.lua
+
+GroupCalendarUI.lua
+GroupCalendar_Party.lua
+GroupCalendar_EventLimits.lua
+GroupCalendar_Whispers.lua
+
+GroupCalendar_Window.lua
+
+GroupCalendarView_Month.lua
+GroupCalendarView_About.lua
+GroupCalendarView_Alliance.lua
+GroupCalendarView_Settings.lua
+GroupCalendarView_Export.lua
+
+GroupCalendarView_Event.lua
+GroupCalendarView_Day.lua
+
+GroupCalendarEvent_Editor.lua
+GroupCalendarEvent_Viewer.lua
+GroupCalendarEvent_Group.lua
+GroupCalendarEvent_Invite.lua
