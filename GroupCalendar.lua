@@ -53,7 +53,7 @@ function GroupCalendar:Initialize()
 	
 	--
 	
-	self.EventLib:DispatchEvent("GROUPCALENDAR_INIT")
+	self.EventLib:DispatchEvent("GC5_INIT")
 	self:DebugMessage("Group Calendar initialized")
 end
 

@@ -1,4 +1,4 @@
-﻿## Interface: 80000
+## Interface: 80000
 ## Title: Group Calendar 5
 ## Version: 5.9.1
 ## Notes: Enhancements for in-game calendar, (c) 2005 - 2016 John Stephen
@@ -17,6 +17,8 @@
 ## X-ReloadTag: 2
 
 GroupCalendar_Prefix.lua
+
+MC2AddonLib.lua
 
 utf8data.lua
 utf8.lua
@@ -47,7 +49,6 @@ GC5ClockLib.lua
 GroupCalendar.lua
 
 GroupCalendar_MD5.lua
-GroupCalendar_Textures.lua
 GroupCalendar_Character.lua
 GroupCalendar_Cooldowns.lua
 GroupCalendar_Tradeskill.lua
@@ -59,23 +60,23 @@ GroupCalendar_iCal.lua
 
 GroupCalendar_Clock.lua
 
-GroupCalendarUI.lua
-GroupCalendar_Party.lua
-GroupCalendar_EventLimits.lua
-GroupCalendar_Whispers.lua
+UI/GroupCalendarUI.lua
+UI/GroupCalendar_Party.lua
+UI/GroupCalendar_EventLimits.lua
+UI/GroupCalendar_Whispers.lua
 
-GroupCalendar_Window.lua
+UI/GroupCalendar_Window.lua
 
-GroupCalendarView_Month.lua
-GroupCalendarView_About.lua
-GroupCalendarView_Alliance.lua
-GroupCalendarView_Settings.lua
-GroupCalendarView_Export.lua
+UI/GroupCalendarView_Month.lua
+UI/GroupCalendarView_About.lua
+UI/GroupCalendarView_Alliance.lua
+UI/GroupCalendarView_Settings.lua
+UI/GroupCalendarView_Export.lua
 
-GroupCalendarView_Event.lua
-GroupCalendarView_Day.lua
+UI/GroupCalendarView_Event.lua
+UI/GroupCalendarView_Day.lua
 
-GroupCalendarEvent_Editor.lua
-GroupCalendarEvent_Viewer.lua
-GroupCalendarEvent_Group.lua
-GroupCalendarEvent_Invite.lua
+UI/GroupCalendarEvent_Editor.lua
+UI/GroupCalendarEvent_Viewer.lua
+UI/GroupCalendarEvent_Group.lua
+UI/GroupCalendarEvent_Invite.lua
