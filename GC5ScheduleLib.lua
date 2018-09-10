@@ -186,8 +186,8 @@ function GroupCalendar._Calendar:Construct(pOwnersName, pCalendarID, pCalendarDa
 		GroupCalendar.EventLib:RegisterEvent("CALENDAR_CLOSE_EVENT", self.DebugEvents, self)
 		GroupCalendar.EventLib:RegisterEvent("CALENDAR_UPDATE_EVENT", self.DebugEvents, self)
 		GroupCalendar.EventLib:RegisterEvent("CALENDAR_UPDATE_INVITE_LIST", self.DebugEvents, self)
-		GroupCalendar.EventLib:RegisterEvent("GC5_EVENT_CHANGED", self.DebugEvents, self)
-		GroupCalendar.EventLib:RegisterEvent("GC5_CALENDAR_CHANGED", self.DebugEvents, self)
+		GroupCalendar.EventLib:RegisterCustomEvent("GC5_EVENT_CHANGED", self.DebugEvents, self)
+		GroupCalendar.EventLib:RegisterCustomEvent("GC5_CALENDAR_CHANGED", self.DebugEvents, self)
 		GroupCalendar.EventLib:RegisterEvent("CALENDAR_ACTION_PENDING", self.DebugEvents, self)
 		GroupCalendar.EventLib:RegisterEvent("CALENDAR_NEW_EVENT", self.DebugEvents, self)
 	end

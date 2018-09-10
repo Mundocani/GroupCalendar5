@@ -1,4 +1,4 @@
-﻿----------------------------------------
+----------------------------------------
 -- Group Calendar 5 Copyright 2005 - 2016 John Stephen, wobbleworks.com
 -- All rights reserved, unauthorized redistribution is prohibited
 ----------------------------------------
@@ -1250,4 +1250,4 @@ end
 --
 ----------------------------------------
 
-GroupCalendar.EventLib:RegisterEvent("GROUPCALENDAR_INIT", GroupCalendar.Partnerships.Initialize, GroupCalendar.Partnerships)
+GroupCalendar.EventLib:RegisterCustomEvent("GC5_INIT", GroupCalendar.Partnerships.Initialize, GroupCalendar.Partnerships)

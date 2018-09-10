@@ -176,8 +176,8 @@ function GroupCalendar.UI._MonthView:OnShow()
 		self.EventMenu = GroupCalendar:New(GroupCalendar._EventContextMenu, self)
 	end
 	
-	GroupCalendar.EventLib:RegisterEvent("GC5_CALENDAR_CHANGED", self.Refresh, self)
-	GroupCalendar.EventLib:RegisterEvent("GC5_PREFS_CHANGED", self.Refresh, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("GC5_CALENDAR_CHANGED", self.Refresh, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.Refresh, self)
 	
 	self:RegisterEvent("CVAR_UPDATE")
 	self:AdjustWeekdayTitles()

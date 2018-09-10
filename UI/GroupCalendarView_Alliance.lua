@@ -69,7 +69,7 @@ function GroupCalendar.UI._PartnersView:Construct(pParent)
 	self:SetScript("OnShow", self.OnShow)
 	self:SetScript("OnHide", self.OnHide)
 	
-	GroupCalendar.EventLib:RegisterEvent("GC5_PARTNERS_CHANGED", self.Refresh, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PARTNERS_CHANGED", self.Refresh, self)
 end
 
 function GroupCalendar.UI._PartnersView:OnShow()

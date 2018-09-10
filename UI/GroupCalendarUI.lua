@@ -150,4 +150,4 @@ GroupCalendar.Themes.LEGION =
 --
 ----------------------------------------
 
-GroupCalendar.EventLib:RegisterEvent("GROUPCALENDAR_INIT", GroupCalendar.UI.Initialize, GroupCalendar.UI)
+GroupCalendar.EventLib:RegisterCustomEvent("GC5_INIT", GroupCalendar.UI.Initialize, GroupCalendar.UI)

@@ -90,7 +90,7 @@ function GroupCalendar.UI._EventViewer:Construct(pParentFrame)
 	
 	self:SetScript("OnShow", function ()
 		PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
-		GroupCalendar.EventLib:RegisterEvent("GC5_PREFS_CHANGED", self.Refresh, self)
+		GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.Refresh, self)
 		self:Refresh()
 	end)
 	

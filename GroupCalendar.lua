@@ -44,7 +44,7 @@ function GroupCalendar:Initialize()
 	GameTimeFrame:SetScript("OnEnter", function (...) self:GameTimeFrame_OnEnter(...) end)
 	GameTimeFrame:SetScript("OnUpdate", function (...) self:GameTimeFrame_OnUpdate(...) end)
 	
-	self.EventLib:RegisterEvent("GC5_CALENDAR_CHANGED", self.CheckForNewEvents, self)
+	self.EventLib:RegisterCustomEvent("GC5_CALENDAR_CHANGED", self.CheckForNewEvents, self)
 	
 	-- Disable the built-in reminder glow/icon
 	

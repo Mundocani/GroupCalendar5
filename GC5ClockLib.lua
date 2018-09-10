@@ -85,14 +85,14 @@ function Addon._Clock:OnShow()
 	self:OnUpdate(0)
 	
 	if Addon.EventLib then
-		Addon.EventLib:RegisterEvent("GC_CLOCKS_CHANGED", self.Update, self)
-		Addon.EventLib:RegisterEvent("GC5_PREFS_CHANGED", function () self.NextUpdateDelay = 0 end)
+		Addon.EventLib:RegisterCustomEvent("GC5_CLOCKS_CHANGED", self.Update, self)
+		Addon.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", function () self.NextUpdateDelay = 0 end)
 	end
 end
 
 function Addon._Clock:OnHide()
 	if Addon.EventLib then
-		Addon.EventLib:UnregisterEvent("GC_CLOCKS_CHANGED", self.Update, self)
+		Addon.EventLib:UnregisterEvent("GC5_CLOCKS_CHANGED", self.Update, self)
 		Addon.EventLib:UnregisterEvent("GC5_PREFS_CHANGED", nil, self)
 	end
 end

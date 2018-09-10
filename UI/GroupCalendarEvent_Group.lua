@@ -285,7 +285,7 @@ function GroupCalendar.UI._EventGroup:SetEvent(pEvent, pIsNewEvent)
 	
 	GroupCalendar.EventLib:RegisterEvent("GROUP_ROSTER_UPDATE", self.ScheduleRebuild, self, true)
 	GroupCalendar.EventLib:RegisterEvent("PARTY_LEADER_CHANGED", self.ScheduleRebuild, self, true)
-	GroupCalendar.EventLib:RegisterEvent("GC5_PREFS_CHANGED", self.Refresh, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.Refresh, self)
 end
 
 function GroupCalendar.UI._EventGroup:SaveEventFields()
