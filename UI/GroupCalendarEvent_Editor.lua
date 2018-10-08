@@ -314,7 +314,7 @@ function GroupCalendar.UI._EventEditor:OnShow()
 	self:Initialize()
 	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
 
-	GroupCalendar.EventLib:RegisterEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
 	
 	if not self.Event then
 		return

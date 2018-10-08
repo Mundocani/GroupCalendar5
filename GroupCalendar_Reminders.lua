@@ -335,6 +335,6 @@ function GroupCalendar.Reminders:EventChanged()
 end
 
 GroupCalendar.EventLib:RegisterEvent("PLAYER_ENTERING_WORLD", GroupCalendar.Reminders.PlayerEnteringWorld, GroupCalendar.Reminders)
-GroupCalendar.EventLib:RegisterEvent("GC5_EVENT_CHANGED", GroupCalendar.Reminders.EventChanged, GroupCalendar.Reminders)
-GroupCalendar.EventLib:RegisterEvent("GC5_EVENT_ADDED", GroupCalendar.Reminders.EventChanged, GroupCalendar.Reminders)
-GroupCalendar.EventLib:RegisterEvent("GC5_EVENT_DELETED", GroupCalendar.Reminders.EventChanged, GroupCalendar.Reminders)
+GroupCalendar.EventLib:RegisterCustomEvent("GC5_EVENT_CHANGED", GroupCalendar.Reminders.EventChanged, GroupCalendar.Reminders)
+GroupCalendar.EventLib:RegisterCustomEvent("GC5_EVENT_ADDED", GroupCalendar.Reminders.EventChanged, GroupCalendar.Reminders)
+GroupCalendar.EventLib:RegisterCustomEvent("GC5_EVENT_DELETED", GroupCalendar.Reminders.EventChanged, GroupCalendar.Reminders)
