@@ -976,7 +976,8 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 	self.Title = GroupCalendar.WoWCalendar:GetDisplayTitle(self.CalendarType, self.SequenceType, self.Title)
 	
 	if self.CalendarType == "HOLIDAY" then
-		_, self.Description, _ = GroupCalendar.WoWCalendar:GetHolidayInfo(vMonthOffset, self.Day, self.Index)
+		local holidayInfo = GroupCalendar.WoWCalendar:GetHolidayInfo(vMonthOffset, self.Day, self.Index)
+		self.Description = holidayInfo.description
 	elseif self.CalendarType == "RAID_LOCKOUT"
 	or self.CalendarType == "RAID_RESET" then
 		self.Description = ""
@@ -1043,7 +1044,6 @@ function GroupCalendar._APIEventMethods:InitializeNewEvent()
 	if self.TextureIndex then
 		GroupCalendar.WoWCalendar:EventSetTextureID(self.TextureIndex)
 	end
-	GroupCalendar.WoWCalendar:EventSetRepeatOption(self.RepeatOption)
 	
 	self:GetEventInfo()
 end
@@ -1236,31 +1236,7 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 		return
 	end
 	
-	local vTitle,
-	      vDescription,
-	      vCreator,
-	      vEventType,
-	      vRepeatOption,
-	      vMaxSize,
-	      vTextureIndex,
-	      vWeekday,
-	      vMonth,
-	      vDay,
-	      vYear,
-	      vHour,
-	      vMinute,
-	      vLockoutWeekday,
-	      vLockoutMonth,
-	      vLockoutDay,
-	      vLockoutYear,
-	      vLockoutHour,
-	      vLockoutMinute,
-	      vLocked,
-	      vAutoApprove,
-	      vPendingInvite,
-	      vInviteStatus,
-	      vInviteType,
-	      vCalendarType = GroupCalendar.WoWCalendar:GetEventInfo()
+	local eventInfo = GroupCalendar.WoWCalendar:GetEventInfo()
 	
 	if vTextureIndex == 0 then vTextureIndex = nil end
 	
@@ -1688,19 +1664,16 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 		end
 	end
 	
-	self.NumInvites = GroupCalendar.WoWCalendar:EventGetNumInvites() or 0
-	
-	for vIndex = 1, self.NumInvites do
-		local vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = GroupCalendar.WoWCalendar:EventGetInvite(vIndex)
-		local vResponseDate, vResponseTime
+	local inviteIndex = 1
+	local invite = GroupCalendar.WoWCalendar:EventGetInvite(inviteIndex)
+	while invite ~= nil do
+		local responseDate, responseTime
+		local responseTime = GroupCalendar.WoWCalendar:EventGetInviteResponseTime(inviteIndex)
+		GroupCalendar:DebugTable(responseTime)
 		
-		if CalendarEventGetInviteResponseTime then
-			local vWeekday, vMonth, vDay, vYear, vHour, vMinute = GroupCalendar.WoWCalendar:EventGetInviteResponseTime(vIndex)
-			
-			if vYear and vYear ~= 0 then
-				vResponseDate = GroupCalendar.DateLib:ConvertMDYToDate(vMonth, vDay, vYear)
-				vResponseTime = GroupCalendar.DateLib:ConvertHMToTime(vHour, vMinute)
-			end
+		if vYear and vYear ~= 0 then
+			vResponseDate = GroupCalendar.DateLib:ConvertMDYToDate(vMonth, vDay, vYear)
+			vResponseTime = GroupCalendar.DateLib:ConvertHMToTime(vHour, vMinute)
 		end
 		
 		local vInfo = self.Attendance[vName or ""]
@@ -1793,7 +1766,14 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 				vChanged = true
 			end
 		end
-	end -- for vIndex
+		
+		-- Next
+		inviteIndex = inviteIndex + 1
+		invite = GroupCalendar.WoWCalendar:EventGetInvite(inviteIndex)
+
+	end -- while invite
+	
+	self.NumInvites = inviteIndex - 1
 	
 	for vName, vInfo in pairs(self.Attendance) do
 		if vInfo.Unused then
@@ -3014,12 +2994,12 @@ function GroupCalendar.WoWCalendar:EventSetTitle(pTitle)
 end
 
 function GroupCalendar.WoWCalendar:GetEventInfo()
-	local result = {C_Calendar.GetEventInfo()}
+	local eventInfo  = C_Calendar.GetEventInfo()
 	
-	result[1] = self:ProcessTitle(result[1])
-	result[2] = self:ProcessDescription(result[2])
+	eventInfo.title = self:ProcessTitle(eventInfo.title)
+	eventInfo.description = self:ProcessDescription(eventInfo.description)
 	
-	return unpack(result)
+	return eventInfo
 end
 
 function GroupCalendar.WoWCalendar:EventSetDescription(pDescription)
@@ -3573,7 +3553,7 @@ function GroupCalendar:GetTextureFile(pTextureName, pCalendarType, pSequenceType
 			-- vTexture = self.CALENDAR_EVENTTYPE_TEXTURES[pEventType]
 			vTexCoords = self.CALENDAR_EVENTTYPE_TCOORDS[pEventType]
 		end
-	elseif self.CALENDAR_CALENDARTYPE_TEXTURES[pCalendarType][pSequenceType] then
+	elseif self.CALENDAR_CALENDARTYPE_TEXTURES[pCalendarType] and self.CALENDAR_CALENDARTYPE_TEXTURES[pCalendarType][pSequenceType] then
 		vTexture = self.CALENDAR_CALENDARTYPE_TEXTURES[pCalendarType][pSequenceType]
 		vTexCoords = self.CALENDAR_CALENDARTYPE_TCOORDS[pCalendarType]
 	elseif self.CALENDAR_EVENTTYPE_TEXTURES[pEventType] then
