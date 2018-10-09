@@ -320,40 +320,40 @@ function GroupCalendar.UI._MonthView:Refresh()
 	local didShowToday
 	
 	for dayFrameIndex, dayFrame in ipairs(self.DayFrames) do
-		local vFrameMonth, vFrameDay, vFrameYear
+		local frameMonth, frameDay, frameYear
 		
 		if dayFrameIndex < firstDay then
-			vFrameMonth = previousMonthInfo.month
-			vFrameDay = previousMonthInfo.numDays + dayFrameIndex - firstDay + 1
-			vFrameYear = previousMonthInfo.year
+			frameMonth = previousMonthInfo.month
+			frameDay = previousMonthInfo.numDays + dayFrameIndex - firstDay + 1
+			frameYear = previousMonthInfo.year
 		else
-			vFrameDay = dayFrameIndex - firstDay + 1
+			frameDay = dayFrameIndex - firstDay + 1
 			
-			if vFrameDay <= currentMonthInfo.numDays then
-				vFrameMonth = currentMonthInfo.month
-				vFrameYear = currentMonthInfo.year
+			if frameDay <= currentMonthInfo.numDays then
+				frameMonth = currentMonthInfo.month
+				frameYear = currentMonthInfo.year
 			else
-				vFrameMonth = nextMonthInfo.month
-				vFrameDay = vFrameDay - currentMonthInfo.numDays
-				vFrameYear = nextMonthInfo.year
+				frameMonth = nextMonthInfo.month
+				frameDay = frameDay - currentMonthInfo.numDays
+				frameYear = nextMonthInfo.year
 			end
 		end
 		
-		dayFrame:SetDate(vFrameMonth, vFrameDay, vFrameYear, vMonth)
+		dayFrame:SetDate(frameMonth, frameDay, frameYear, currentMonthInfo.month)
 		dayFrame:Show()
 		
-		if vFrameMonth == self.TodaysMonth
-		and vFrameDay == self.TodaysDay
-		and vFrameYear == self.TodaysYear then
+		if frameMonth == self.TodaysMonth
+		and frameDay == self.TodaysDay
+		and frameYear == self.TodaysYear then
 			self.TodayHighlight:SetPoint("CENTER", dayFrame, "CENTER")
 			self.TodayHighlight:Show()
 			
 			didShowToday = true
 		end
 		
-		if vFrameMonth == self.SelectedMonth
-		and vFrameDay == self.SelectedDay
-		and vFrameYear == self.SelectedYear then
+		if frameMonth == self.SelectedMonth
+		and frameDay == self.SelectedDay
+		and frameYear == self.SelectedYear then
 			dayFrame:SetSelected(true)
 		end
 	end
