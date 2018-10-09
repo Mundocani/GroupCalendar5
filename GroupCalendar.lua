@@ -1,5 +1,5 @@
 ----------------------------------------
--- Group Calendar 5 Copyright 2005 - 2016 John Stephen, wobbleworks.com
+-- Group Calendar 5 Copyright (c) 2018 John Stephen
 -- All rights reserved, unuauthorized redistribution is prohibited
 ----------------------------------------
 
