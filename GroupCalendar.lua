@@ -8,9 +8,7 @@ GroupCalendar_Data = nil
 function GroupCalendar:Initialize()
 	GroupCalendar.EventLib:UnregisterEvent("PLAYER_ENTERING_WORLD", GroupCalendar.Initialize, GroupCalendar)
 	
-	if not self.WoWCalendar then
-		self.WoWCalendar = GroupCalendar:New(self._WoWCalendar)
-	end
+	GroupCalendar.WoWCalendar:Init()
 	
 	GroupCalendar:InitializeData()
 	
@@ -28,10 +26,10 @@ function GroupCalendar:Initialize()
 	-- Queue a command to start loading the calendar data
 	
 	self.SchedulerLib:ScheduleTask(5, function ()
-		local calendarDate = C_Calendar.GetDate()
+		local calendarDate = self.WoWCalendar:GetDate()
 		
-		C_Calendar.SetAbsMonth(calendarDate.month, calendarDate.year)
-		C_Calendar.OpenCalendar()
+		self.WoWCalendar:SetAbsMonth(calendarDate.month, calendarDate.year)
+		self.WoWCalendar:OpenCalendar()
 	end)
 	
 	--
@@ -197,40 +195,39 @@ function GroupCalendar:GetDayEvents(pMonth, pDay, pYear, pRecycleTable)
 	return vEvents
 end
 
-function GroupCalendar:CanCreateEventOnDate(pMonth, pDay, pYear)
-	return self:IsTodayOrLater(pMonth, pDay, pYear)
-	   and not self:IsAfterMaxCreateDate(pMonth, pDay, pYear)
+function GroupCalendar:CanCreateEventOnDate(month, day, year)
+	return self:IsTodayOrLater(month, day, year) and not self:IsAfterMaxCreateDate(month, day, year)
 end
 
-function GroupCalendar:IsTodayOrLater(pMonth, pDay, pYear)
-	local calendarDate = C_Calendar.GetDate()
+function GroupCalendar:IsTodayOrLater(month, day, year)
+	local calendarDate = self.WoWCalendar:GetDate()
 	
-	if pYear > vYear then
+	if year > calendarDate.year then
 		return true
-	elseif pYear < vYear then
+	elseif year < calendarDate.year then
 		return false
-	elseif pMonth > vMonth then
+	elseif month > calendarDate.month then
 		return true
-	elseif pMonth < vMonth then
+	elseif month < calendarDate.month then
 		return false
 	else
-		return pDay >= vDay
+		return day >= calendarDate.monthDay
 	end
 end
 
-function GroupCalendar:IsAfterMaxCreateDate(pMonth, pDay, pYear)
-	local maxCreateDate = C_Calendar.GetMaxCreateDate()
+function GroupCalendar:IsAfterMaxCreateDate(month, day, year)
+	local maxCreateDate = self.WoWCalendar:GetMaxCreateDate()
 	
-	if pYear > vYear then
+	if year > maxCreateDate.year then
 		return true
-	elseif pYear < vYear then
+	elseif year < maxCreateDate.year then
 		return false
-	elseif pMonth > vMonth then
+	elseif month > maxCreateDate.month then
 		return true
-	elseif pMonth < vMonth then
+	elseif month < maxCreateDate.month then
 		return false
 	else
-		return pDay > vDay
+		return day > calendarDate.monthDay
 	end
 end
 
@@ -797,7 +794,7 @@ function GroupCalendar:FindEventTemplateByTitle(pTitle)
 	local vUpperTitle = pTitle:upper()
 	
 	for vIndex, vTemplate in ipairs(self.PlayerData.EventTemplates) do
-		local vTemplateTitle = C_Calendar.GetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
+		local vTemplateTitle = self.WoWCalendar:GetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
 		local vTemplateUpperTitle = vTemplateTitle:upper()
 		
 		if vTemplateUpperTitle == vUpperTitle then
@@ -815,7 +812,7 @@ function GroupCalendar:FindEventTemplateByPartialTitle(pTitle)
 	local vUpperTitleLen = vUpperTitle:len()
 	
 	for vIndex, vTemplate in ipairs(self.PlayerData.EventTemplates) do
-		local vTemplateTitle = C_Calendar.GetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
+		local vTemplateTitle = self.WoWCalendar:GetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
 		local vTemplateUpperTitle = vTemplateTitle:upper()
 		
 		if vTemplateUpperTitle:sub(1, vUpperTitleLen) == vUpperTitle then

@@ -35,10 +35,10 @@ function GroupCalendar.UI._DaySidebar:Construct(pParent)
 	self.PasteEventButton = GroupCalendar:New(GroupCalendar.UIElementsLib._PushButton, self, GroupCalendar.cPasteEvent, 120)
 	self.PasteEventButton:SetPoint("RIGHT", self.NewEventButton, "LEFT")
 	self.PasteEventButton:SetScript("OnClick", function (pButton, pMouseButton)
-		GroupCalendar.WoWCalendar:CalendarContextEventPaste(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day)
+		GroupCalendar.WoWCalendar:ContextMenuEventPaste(GroupCalendar.WoWCalendar:GetMonthOffset(self.Month, self.Year), self.Day)
 	end)
 	self.PasteEventButton:SetScript("OnUpdate", function (pButton)
-		pButton:SetEnabled(GroupCalendar.WoWCalendar:CalendarContextEventClipboard() and not self.ReadOnly)
+		pButton:SetEnabled(GroupCalendar.WoWCalendar:ContextMenuEventClipboard() and not self.ReadOnly)
 	end)
 	
 	--
@@ -280,7 +280,7 @@ function GroupCalendar.UI._DaySidebar._ListItem:SetEvent(pEvent)
 	
 	local vTexturePath, vTexCoords = GroupCalendar:GetTextureFile(pEvent.TextureID, pEvent.CalendarType, pEvent.NumSequenceDays ~= 2 and pEvent.SequenceType or "", pEvent.EventType, pEvent.TitleTag)
 	
-	if pEvent.SequenceType == "ONGOING" then
+	if pEvent.SequenceType == "ONGOING" and vTexturePath ~= nil then
 		-- start texture is right before ongoing texture. this works, probably not a good idea in the long run though.
 		vTexturePath = vTexturePath - 1
 	end

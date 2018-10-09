@@ -39,14 +39,14 @@ function GroupCalendar.UI._EventSidebar:Construct(pParent)
 	end)
 	self.DoneButton:SetScript("OnUpdate", function (pDoneButton, ...)
 		if self.IsNewEvent then
-			if GroupCalendar.WoWCalendar:CalendarCanAddEvent() then
+			if GroupCalendar.WoWCalendar:CanAddEvent() then
 				pDoneButton:Enable()
 			else
 				pDoneButton:Disable()
 			end
 		else
-			if (GroupCalendar.WoWCalendar:CalendarEventHaveSettingsChanged() or self.EventEditor:HasChangedEditFields())
-			and not GroupCalendar.WoWCalendar:CalendarIsActionPending() then
+			if (GroupCalendar.WoWCalendar:EventHaveSettingsChanged() or self.EventEditor:HasChangedEditFields())
+			and not GroupCalendar.WoWCalendar:IsActionPending() then
 				pDoneButton:Enable()
 			else
 				pDoneButton:Disable()

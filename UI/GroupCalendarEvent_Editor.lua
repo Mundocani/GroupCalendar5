@@ -16,7 +16,7 @@ GroupCalendar.UI._EventEditor.ItemSpacing = 5
 function GroupCalendar.UI._EventEditor:Construct(pParentFrame)
 	self:SetAllPoints()
 	
-	self.EventTypeNames = {C_Calendar.EventGetTypes()}
+	self.EventTypeNames = {GroupCalendar.WoWCalendar:EventGetTypes()}
 	self.EventTextures = {}
 	
 	self:SetScript("OnShow", self.OnShow)

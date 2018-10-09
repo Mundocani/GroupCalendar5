@@ -37,7 +37,7 @@ function Addon:initObject(object, class, ...)
 		for k, v in pairs(self.Object) do
 			object[k] = v
 		end
-	
+		
 		object:inheritOver(methodTable, ...)
 	end
 	

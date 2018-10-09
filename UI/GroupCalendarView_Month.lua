@@ -53,7 +53,7 @@ function GroupCalendar.UI._MonthView:Construct(pParent)
 	self.TodayButton:SetPushedTexture(GroupCalendar.UI.AddonPath.."Textures\\TodayIcon-Down");
 	self.TodayButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD");
 	self.TodayButton:SetScript("OnClick", function ()
-		local calendarDate = C_Calendar.GetDate()
+		local calendarDate = GroupCalendar.WoWCalendar:GetDate()
 		GroupCalendar.UI.Window:ShowDaySidebar(calendarDate.month, calendarDate.monthDay, calendarDate.year)
 		self:ShowCurrentMonth()
 	end)
@@ -225,7 +225,7 @@ function GroupCalendar.UI._MonthView:ShowPreviousMonth()
 		self.Year = self.Year - 1
 	end
 	
-	C_Calendar.SetAbsMonth(self.Month, self.Year)
+	GroupCalendar.WoWCalendar:SetAbsMonth(self.Month, self.Year)
 	
 	self:Refresh()
 end
@@ -238,7 +238,7 @@ function GroupCalendar.UI._MonthView:ShowNextMonth()
 		self.Year = self.Year + 1
 	end
 	
-	C_Calendar.SetAbsMonth(self.Month, self.Year)
+	GroupCalendar.WoWCalendar:SetAbsMonth(self.Month, self.Year)
 	
 	self:Refresh()
 end
@@ -247,7 +247,7 @@ function GroupCalendar.UI._MonthView:ShowCurrentMonth()
 	if GroupCalendar.Clock.Data.ShowLocalTime then
 		self.TodaysMonth, self.TodaysDay, self.TodaysYear = GroupCalendar.DateLib:GetLocalMDY()
 	else
-		local calendarDate = C_Calendar.GetDate()
+		local calendarDate = GroupCalendar.WoWCalendar:GetDate()
 		self.TodaysMonth = calendarDate.month
 		self.TodaysDay = calendarDate.monthDay
 		self.TodaysYear = calendarDate.year
@@ -256,7 +256,7 @@ function GroupCalendar.UI._MonthView:ShowCurrentMonth()
 	self.Month = self.TodaysMonth
 	self.Year = self.TodaysYear
 	
-	C_Calendar.SetAbsMonth(self.Month, self.Year)
+	GroupCalendar.WoWCalendar:SetAbsMonth(self.Month, self.Year)
 	
 	self:Refresh()
 end
@@ -286,9 +286,9 @@ function GroupCalendar.UI._MonthView:SelectDate(pMonth, pDay, pYear)
 end
 
 function GroupCalendar.UI._MonthView:GetDayFrameByDate(month, day, year)
-	local previousMonthInfo = C_Calendar.GetMonthInfo(-1)
-	local currentMonthInfo = C_Calendar.GetMonthInfo(0)
-	local nextMonthInfo  = C_Calendar.GetMonthInfo(1)
+	local previousMonthInfo = GroupCalendar.WoWCalendar:GetMonthInfo(-1)
+	local currentMonthInfo = GroupCalendar.WoWCalendar:GetMonthInfo(0)
+	local nextMonthInfo  = GroupCalendar.WoWCalendar:GetMonthInfo(1)
 	local dayFrameIndex
 	
 	local firstDay = (currentMonthInfo.firstWeekday - (GroupCalendar.Data.StartDay or 1)) % 7 + 1
@@ -307,9 +307,9 @@ function GroupCalendar.UI._MonthView:GetDayFrameByDate(month, day, year)
 end
 
 function GroupCalendar.UI._MonthView:Refresh()
-	local previousMonthInfo = C_Calendar.GetMonthInfo(-1)
-	local currentMonthInfo = C_Calendar.GetMonthInfo(0)
-	local nextMonthInfo  = C_Calendar.GetMonthInfo(1)
+	local previousMonthInfo = GroupCalendar.WoWCalendar:GetMonthInfo(-1)
+	local currentMonthInfo = GroupCalendar.WoWCalendar:GetMonthInfo(0)
+	local nextMonthInfo  = GroupCalendar.WoWCalendar:GetMonthInfo(1)
 
 	self.MonthYearText:SetText(string.format("%s %04d", GroupCalendar.CALENDAR_MONTH_NAMES[currentMonthInfo.month], currentMonthInfo.year))
 	
@@ -1295,7 +1295,7 @@ function GroupCalendar._DayContextMenu:InitMenu(pLevel, pMenuList)
 	end
 	
 	local vCanCreate = GroupCalendar:CanCreateEventOnDate(self.Month, self.Day, self.Year)
-	local vCanPaste = vCanCreate and C_Calendar.ContextEventClipboard()
+	local vCanPaste = vCanCreate and GroupCalendar.WoWCalendar:ContextMenuEventClipboard()
 	
 	if vCanCreate and vCanPaste then
 		self:AddDivider()
@@ -1309,7 +1309,7 @@ function GroupCalendar._DayContextMenu:ItemClicked(pValue)
 	or pValue == "GUILD_ANNOUNCEMENT" then
 		GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, pValue)
 	elseif pValue == "PASTE" then
-		C_Calendar.ContextEventPaste(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day);
+		GroupCalendar.WoWCalendar:ContextMenuEventPaste(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day);
 	end
 end
 

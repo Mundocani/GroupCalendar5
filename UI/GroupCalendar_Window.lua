@@ -128,7 +128,7 @@ function GroupCalendar.UI._Window:OnShow()
 	if CalendarFrame_CloseEvent then
 		CalendarFrame_CloseEvent()
 	else
-		GroupCalendar.WoWCalendar:CalendarCloseEvent()
+		GroupCalendar.WoWCalendar:CloseEvent()
 	end
 	
 	--

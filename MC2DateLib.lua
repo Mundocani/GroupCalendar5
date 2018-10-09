@@ -306,14 +306,14 @@ function Addon.DateLib:GetShortTimeString(pTime)
 	if GetCVarBool("timeMgrUseMilitaryTime") then
 		local vHour, vMinute = self:ConvertTimeToHM(pTime)
 		
-		return format(TEXT(TIME_TWENTYFOURHOURS), vHour, vMinute)
+		return format(TIME_TWENTYFOURHOURS, vHour, vMinute)
 	else
 		local vHour, vMinute, vAMPM = self:ConvertTimeToHMAMPM(pTime)
 		
 		if vAMPM == 0 then
-			return format(TEXT(TIME_TWELVEHOURAM), vHour, vMinute)
+			return format(TIME_TWELVEHOURAM, vHour, vMinute)
 		else
-			return format(TEXT(TIME_TWELVEHOURPM), vHour, vMinute)
+			return format(TIME_TWELVEHOURPM, vHour, vMinute)
 		end
 	end
 end

@@ -74,18 +74,18 @@ function GroupCalendar._Tradeskill:UpdateCurrentTradeskillCooldown()
 				
 			for vDate = vCooldownDate - 30, vCooldownDate - 1 do
 				local vMonth, vDay, vYear = GroupCalendar.DateLib:ConvertDateToMDY(vDate)
-				local vMonthOffset = GroupCalendar.WoWCalendar:CalendarGetMonthOffset(vMonth, vYear)
-				local vNumEvents = GroupCalendar.WoWCalendar:CalendarGetNumDayEvents(vMonthOffset, vDay) 
+				local vMonthOffset = GroupCalendar.WoWCalendar:GetMonthOffset(vMonth, vYear)
+				local vNumEvents = GroupCalendar.WoWCalendar:GetNumDayEvents(vMonthOffset, vDay) 
 					
 				for vEventIndex = 1, vNumEvents do
 					local vTitle, vHour, vMinute,
 							vCalendarType, vSequenceType, vEventType,
 							vTextureID,
-							vModStatus, vInviteStatus, vInvitedBy = GroupCalendar.WoWCalendar:CalendarGetDayEvent(vMonthOffset, vDay, vEventIndex)
-					local vTitleTag = GroupCalendar.WoWCalendar:CalendarEventGetTitleTag()
+							vModStatus, vInviteStatus, vInvitedBy = GroupCalendar.WoWCalendar:GetDayEvent(vMonthOffset, vDay, vEventIndex)
+					local vTitleTag = GroupCalendar.WoWCalendar:EventGetTitleTag()
 						
 					if vTitleTag == vCooldownID then
-						GroupCalendar.WoWCalendar:CalendarContextEventRemove(vMonthOffset, vDay, vEventIndex)
+						GroupCalendar.WoWCalendar:ContextMenuEventRemove(vMonthOffset, vDay, vEventIndex)
 						break
 					end
 				end -- for vEventIndex
@@ -95,11 +95,11 @@ function GroupCalendar._Tradeskill:UpdateCurrentTradeskillCooldown()
 end
 
 function GroupCalendar._Tradeskill:HasCooldownIDEvent(pCooldownID, pMonth, pDay, pYear)
-	local vNumEvents = GroupCalendar.WoWCalendar:CalendarGetNumAbsDayEvents(pMonth, pDay, pYear)
+	local vNumEvents = GroupCalendar.WoWCalendar:GetNumAbsDayEvents(pMonth, pDay, pYear)
 	
 	for vEventIndex = 1, vNumEvents do
-		local vTitle, vHour, vMinute = GroupCalendar.WoWCalendar:CalendarGetAbsDayEvent(pMonth, pDay, pYear, vEventIndex)
-		local vTitleTag = GroupCalendar.WoWCalendar:CalendarEventGetTitleTag()
+		local vTitle, vHour, vMinute = GroupCalendar.WoWCalendar:GetAbsDayEvent(pMonth, pDay, pYear, vEventIndex)
+		local vTitleTag = GroupCalendar.WoWCalendar:EventGetTitleTag()
 
 		if vTitleTag == pCooldownID then
 			return true, vEventIndex
