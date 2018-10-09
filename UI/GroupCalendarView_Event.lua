@@ -98,67 +98,61 @@ function GroupCalendar.UI._EventSidebar:DeleteEvent()
 	GroupCalendar.UI.Window:ShowDaySidebar()
 end
 
-function GroupCalendar.UI._EventSidebar:SetEvent(pEvent, pIsNewEvent)
-	-- Ignore calls on our existing event
-	
-	if pEvent == self.Event then
+function GroupCalendar.UI._EventSidebar:SetEvent(event, isNewEvent)
+	-- Ignore repeated calls on the same event
+	if event == self.Event then
 		return
 	end
 	
 	-- Shut down existing listeners
-	
 	GroupCalendar.BroadcastLib:StopListening(nil, self.EventMessage, self)
 	GroupCalendar.EventLib:UnregisterEvent("CALENDAR_NEW_EVENT", self.NewEventCreated, self)
 	
 	-- Switch events
-	
-	local vEvent = self.Event
-	
-	self.Event = pEvent
-	
-	if vEvent and GroupCalendar.WoWCalendar.OpenedEvent == vEvent then
-		vEvent:Close()
+	local previousEvent = self.Event
+	self.Event = event
+	self.IsNewEvent = isNewEvent
+
+	-- Close the previous event
+	if previousEvent and GroupCalendar.WoWCalendar.OpenedEvent == previousEvent then
+		previousEvent:Close()
 	end
 	
 	-- Signal the calendar that user has now seen this event
-	
-	if pEvent
-	and pEvent.Unseen then
-		pEvent.Unseen = nil
+	if event and event.Unseen then
+		event.Unseen = nil
 		GroupCalendar.EventLib:DispatchEvent("GC5_CALENDAR_CHANGED")
 	end
 		
 	-- Use a shadow copy so the cached version doesn't get modified unless changes are committed
-	
-	if pEvent
-	and not pIsNewEvent
-	and pEvent.OwnersName == GroupCalendar.PlayerName then
-		self.Event = pEvent:GetShadowCopy()
+	if event and not isNewEvent and event.OwnersName == GroupCalendar.PlayerName then
+		self.Event = event:GetShadowCopy()
 	else
-		self.Event = pEvent
+		self.Event = event
 	end
 	
-	--
-	
-	self.IsNewEvent = pIsNewEvent
-	
+	-- Open the event
 	if self.Event then
 		self.Event:Open()
 	end
-	
+
+	-- Set the event on each tab
 	self.EventViewer:SetEvent(self.Event, self.IsNewEvent)
 	self.EventEditor:SetEvent(self.Event, self.IsNewEvent)
 	self.EventInvite:SetEvent(self.Event, self.IsNewEvent)
 	self.EventGroup:SetEvent(self.Event, self.IsNewEvent)
-	
+
+	-- Refresh the tab list
 	self:Refresh()
-	
+
+	-- Start listening
 	if self.Event then
 		GroupCalendar.BroadcastLib:Listen(self.Event, self.EventMessage, self)
 		GroupCalendar.EventLib:RegisterEvent("CALENDAR_NEW_EVENT", self.NewEventCreated, self)
 	end
-	
-	if pIsNewEvent then
+
+	-- Adjust the Done button text
+	if isNewEvent then
 		self.DoneButton.Text:SetText(CALENDAR_CREATE)
 	else
 		self.DoneButton.Text:SetText(APPLY)
@@ -187,21 +181,39 @@ function GroupCalendar.UI._EventSidebar:Refresh()
 		return
 	end
 	
-	self.Title:SetText(self.Event.Title)
+	GroupCalendar:TestMessage("EventSidebar:Refresh")
+	GroupCalendar:DebugTable(self.Event, "   event")
 	
+	self.Title:SetText(self.Event.Title)
+
+	-- Show the Edit and Invite tabs
 	if self.Event:CanEdit() then
+		GroupCalendar:TestMessage("EventSidebar:Refresh can edit")
 		self.TabbedView:ShowView(self.EventEditor)
-		
+
+		-- Show the Invite tab if the event uses attendance
 		if self.Event:UsesAttendance() then
+			GroupCalendar:TestMessage("EventSidebar:Refresh uses attendance")
 			self.TabbedView:ShowView(self.EventInvite)
 		else
+			GroupCalendar:TestMessage("EventSidebar:Refresh doesn't use attendance")
 			self.TabbedView:HideView(self.EventInvite)
 		end
+
+	-- Hide the Edit and Invite tabs
 	else
+		GroupCalendar:TestMessage("EventSidebar:Refresh can not edit")
 		self.TabbedView:HideView(self.EventEditor)
 		self.TabbedView:HideView(self.EventInvite)
 	end
-	
+
+	-- Show/hide the Group tab
+	if self.Event:UsesAttendance() then
+		self.TabbedView:ShowView(self.EventGroup)
+	else
+		self.TabbedView:HideView(self.EventGroup)
+	end
+
 	if self.Event:CanDelete() then
 		self.DeleteButton:Show()
 	else
@@ -218,12 +230,6 @@ function GroupCalendar.UI._EventSidebar:Refresh()
 		self.DoneButton:Show()
 	else
 		self.DoneButton:Hide()
-	end
-	
-	if self.Event:UsesAttendance() then
-		self.TabbedView:ShowView(self.EventGroup)
-	else
-		self.TabbedView:HideView(self.EventGroup)
 	end
 end
 

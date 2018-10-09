@@ -139,8 +139,8 @@ function GroupCalendar.UI._SettingsView:StartDayMenuFunc(menu, menuID)
 				return (GroupCalendar.Data.StartDay or 1) == index
 			end,
 			function (menu, value)
-				GroupCalendar.Data.StartDay = pItemID
-				GroupCalendar.UI.Window.MonthView:SetStartDay(GroupCalendar.Data.StartDay)
+				GroupCalendar.Data.StartDay = index
+				GroupCalendar.UI.Window.MonthView:SetStartDay(index)
 				self:UpdateStartDayMenuValue()
 			end
 		)

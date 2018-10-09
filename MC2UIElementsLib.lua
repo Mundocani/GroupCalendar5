@@ -338,36 +338,41 @@ function Addon.UIElementsLib._Tabs:Construct(pFrame, pXOffset, pYOffset)
 	self.YOffset = (pYOffset or 0) + 3
 end
 
-function Addon.UIElementsLib._Tabs:NewTab(pTitle, pValue)
-	local vTabName = "MC2UIElementsLibTab"..MC2UIElementsLib.TabNameIndex
-	
+function Addon.UIElementsLib._Tabs:NewTab(title, value)
+	local name = "MC2UIElementsLibTab"..MC2UIElementsLib.TabNameIndex
+	Addon:DebugMessage("Creating tab "..name)
+
 	MC2UIElementsLib.TabNameIndex = MC2UIElementsLib.TabNameIndex + 1
 	
-	local vTab = CreateFrame("Button", vTabName, self.ParentFrame, "CharacterFrameTabButtonTemplate")
+	local tab = CreateFrame("Button", name, self.ParentFrame, "CharacterFrameTabButtonTemplate")
 	
-	vTab:SetText(pTitle)
-	vTab.Value = pValue
-	vTab:SetScript("OnClick", function(...) self:Tab_OnClick(...) end)
+	tab:SetText(title)
+	tab.Value = value
+	tab:SetScript("OnClick", function(...) self:Tab_OnClick(...) end)
 	
-	PanelTemplates_DeselectTab(vTab)
+	PanelTemplates_DeselectTab(tab)
 	
-	table.insert(self.Tabs, vTab)
+	table.insert(self.Tabs, tab)
 	
 	self:UpdateTabs()
 end
 
 function Addon.UIElementsLib._Tabs:UpdateTabs()
-	local vPreviousTab
+	local previousTab
 	
-	for _, vTab in ipairs(self.Tabs) do
-		if not vTab.Hidden then
-			if not vPreviousTab then
-				vTab:SetPoint("TOPLEFT", self.ParentFrame, "TOPLEFT", self.XOffset, self.YOffset)
+	for _, tab in ipairs(self.Tabs) do
+		-- Remove existing anchors
+		tab:ClearAllPoints()
+
+		-- Anchor to the previous tab if shown, or the parent if this is the first visible tab
+		if not tab.Hidden then
+			if not previousTab then
+				tab:SetPoint("TOPLEFT", self.ParentFrame, "TOPLEFT", self.XOffset, self.YOffset)
 			else
-				vTab:SetPoint("TOPLEFT", vPreviousTab, "TOPRIGHT", -14, 0)
+				tab:SetPoint("TOPLEFT", previousTab, "TOPRIGHT", -14, 0)
 			end
 			
-			vPreviousTab = vTab
+			previousTab = tab
 		end
 	end
 end
@@ -445,36 +450,44 @@ end
 Addon.UIElementsLib._TabbedView = {}
 ----------------------------------------
 
-function Addon.UIElementsLib._TabbedView:New(pParent, pXOffset, pYOffset)
-	return CreateFrame("Frame", nil, pParent or UIParent)
+function Addon.UIElementsLib._TabbedView:New(parent, horizOffset, vertOffset)
+	return CreateFrame("Frame", nil, parent or UIParent)
 end
 
-function Addon.UIElementsLib._TabbedView:Construct(pParent, pXOffset, pYOffset)
+function Addon.UIElementsLib._TabbedView:Construct(parent, horizOffset, vertOffset)
 	self.Views = {}
 	self.CurrentFrame = nil
 	
 	self:SetWidth(1)
 	self:SetHeight(1)
 	
-	self:SetPoint("TOPLEFT", pParent, "BOTTOMLEFT", pXOffset, pYOffset)
+	self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", horizOffset, vertOffset)
 	
 	self.Tabs = Addon:New(Addon.UIElementsLib._Tabs, self)
-	self.Tabs.OnSelect = function (tabs, tab) self:SelectView(tab.Value) end
+	self.Tabs.OnSelect = function (tabs, tab)
+		self:SelectView(tab.Value)
+	end
 end
 
-function Addon.UIElementsLib._TabbedView:AddView(pFrame, pTitle)
-	local vView =
-	{
-		Title = pTitle,
-		Frame = pFrame,
-		Tab = self.Tabs:NewTab(pTitle, pFrame),
+function Addon.UIElementsLib._TabbedView:AddView(frame, title)
+	Addon:DebugMessage("Adding tab "..title)
+
+	-- Add the tab
+	local tab = self.Tabs:NewTab(title, frame)
+
+	-- Create the view
+	local view = {
+		Title = title,
+		Frame = frame,
+		Tab = tab,
 	}
-	
-	pFrame:Hide()
-	
-	table.insert(self.Views, vView)
-	
-	return vView
+	table.insert(self.Views, view)
+
+	-- Initially hidden
+	frame:Hide()
+
+	-- Done
+	return view
 end
 
 function Addon.UIElementsLib._TabbedView:SelectView(pFrame)
@@ -1225,6 +1238,11 @@ function Addon.UIElementsLib._DropDownMenuItems:Construct(closeFunc)
 end
 
 function Addon.UIElementsLib._DropDownMenuItems:AddItem(item, options)
+	-- Convert to a table if the item is just a string
+	if type(item) ~= "table" then
+		item = {name = tostring(item)}
+	end
+
 	-- Copy the options table over if it's provided
 	if options then
 		assert(type(options) == "table", "AddItem second parameter must be a table")
@@ -1939,9 +1957,9 @@ end
 
 function Addon.UIElementsLib._DatePicker:SetDate(pMonth, pDay, pYear)
 	if not pMonth then
-		self.YearMenu:SetSelectedValue(nil)
-		self.MonthMenu:SetSelectedValue(nil)
-		self.DayMenu:SetSelectedValue(nil)
+		self.YearMenu:SetCurrentValueText(nil)
+		self.MonthMenu:SetCurrentValueText(nil)
+		self.DayMenu:SetCurrentValueText(nil)
 		
 		return
 	end
@@ -1949,9 +1967,9 @@ function Addon.UIElementsLib._DatePicker:SetDate(pMonth, pDay, pYear)
 	-- Set DayMenu last so that month and year will be available for calculating
 	-- the number of days in the month
 	
-	self.YearMenu:SetSelectedValue(pYear)
-	self.MonthMenu:SetSelectedValue(pMonth)
-	self.DayMenu:SetSelectedValue(pDay)
+	self.YearMenu:SetCurrentValueText(pYear)
+	self.MonthMenu:SetCurrentValueText(pMonth)
+	self.DayMenu:SetCurrentValueText(pDay)
 end
 
 function Addon.UIElementsLib._DatePicker:DateValueChanged()
@@ -1973,8 +1991,8 @@ function Addon.UIElementsLib._DatePicker:GetDate()
 end
 
 function Addon.UIElementsLib._DatePicker:MonthMenuFunc(pMenu)
-	for vMonth = 1, 12 do
-		pMenu:AddNormalItem(Addon.CALENDAR_MONTH_NAMES[vMonth], vMonth)
+	for month = 1, 12 do
+		pMenu:AddItem(Addon.CALENDAR_MONTH_NAMES[month])
 	end
 end
 
@@ -1986,15 +2004,14 @@ function Addon.UIElementsLib._DatePicker:DayMenuFunc(pMenu)
 	end
 	
 	for vDay = 1, vNumDays do
-		pMenu:AddNormalItem(vDay, vDay)
+		pMenu:AddItem(vDay)
 	end
 end
 
-function Addon.UIElementsLib._DatePicker:YearMenuFunc(pMenu)
-	local _, _, _, vYear = CalendarGetDate()
-	
-	pMenu:AddNormalItem(vYear, vYear)
-	pMenu:AddNormalItem(vYear + 1, vYear + 1)
+function Addon.UIElementsLib._DatePicker:YearMenuFunc(menu)
+	local currentDate = C_Calendar.GetDate()
+	menu:AddItem(currentDate.year)
+	menu:AddItem(currentDate.year + 1)
 end
 
 function Addon.UIElementsLib._DatePicker:SetLabel(pLabel)
@@ -2047,53 +2064,52 @@ function Addon.UIElementsLib._TimePicker:SetEnabled(pEnabled)
 	self.AMPMMenu:SetEnabled(pEnabled)
 end
 
-function Addon.UIElementsLib._TimePicker:SetTime(pHour, pMinute)
-	local vHour
-	
-	if not pHour then
-		self.HourMenu:SetSelectedValue(nil)
-		self.MinuteMenu:SetSelectedValue(nil)
-		self.AMPMMenu:SetSelectedValue(nil)
-		
+function Addon.UIElementsLib._TimePicker:SetTime(hour, minute)
+	self.hour = hour
+	self.minute = minute
+
+	if not hour then
+		self.HourMenu:SetCurrentValueText(nil)
+		self.MinuteMenu:SetCurrentValueText(nil)
+		self.AMPMMenu:SetCurrentValueText(nil)
 		return
 	end
 	
+	local displayHour = hour
+
 	if GetCVarBool("timeMgrUseMilitaryTime") then
-		vHour = pHour
 		self.AMPMMenu:Hide()
-		
 		self.Use24HTime = true
 	else
-		local vAMPM = "AM"
-		
-		if pHour == 0 then
-			vHour = 12
+		local ampm = "AM"
+		if hour == 0 then
+			displayHour = 12
 		elseif pHour == 12 then
-			vHour = pHour
-			vAMPM = "PM"
+			displayHour = pHour
+			ampm = "PM"
 		elseif pHour > 12 then
-			vHour = pHour - 12
-			vAMPM = "PM"
+			displayHour = pHour - 12
+			ampm = "PM"
 		else
-			vHour = pHour
+			displayHour = pHour
 		end
 		
-		if vAMPM == "PM" and vHour > 12 then
-			vHour = vHour - 12
+		if ampm == "PM" and displayHour > 12 then
+			displayHour = displayHour - 12
 		end
 		
-		if vHour == 0 then
-			vHour = 12
+		if displayHour == 0 then
+			displayHour = 12
 		end
 		
-		self.AMPMMenu:SetSelectedValue(vAMPM)
+		self.AMPMMenu:SetCurrentValueText(ampm)
 		self.AMPMMenu:Show()
 		
 		self.Use24HTime = false
 	end
 	
-	self.HourMenu:SetSelectedValue(vHour)
-	self.MinuteMenu:SetSelectedValue(pMinute)
+	self.HourMenu:SetCurrentValueText(displayHour)
+	self.MinuteMenu:SetCurrentValueText(minute)
 end
 
 function Addon.UIElementsLib._TimePicker:TimeValueChanged()
@@ -2107,7 +2123,6 @@ function Addon.UIElementsLib._TimePicker:GetTime()
 	
 	vHour = self.HourMenu:GetSelectedValue()
 	vMinute = self.MinuteMenu:GetSelectedValue()
-	
 	
 	if not vHour or not vMinute then
 		return
@@ -2128,27 +2143,27 @@ function Addon.UIElementsLib._TimePicker:GetTime()
 	return vHour, vMinute
 end
 
-function Addon.UIElementsLib._TimePicker:HourMenuFunc(pMenu)
+function Addon.UIElementsLib._TimePicker:HourMenuFunc(menu)
 	if self.Use24HTime then
-		for vHour = 0, 23 do
-			pMenu:AddNormalItem(vHour, vHour)
+		for hour = 0, 23 do
+			menu:AddItem(hour)
 		end
 	else
-		for vHour = 1, 12 do
-			pMenu:AddNormalItem(vHour, vHour)
+		for hour = 1, 12 do
+			menu:AddItem(hour)
 		end
 	end
 end
 
-function Addon.UIElementsLib._TimePicker:MinuteMenuFunc(pMenu)
-	for vMinute = 0, 59, 5 do
-		pMenu:AddNormalItem(string.format("%02d", vMinute), vMinute)
+function Addon.UIElementsLib._TimePicker:MinuteMenuFunc(menu)
+	for minute = 0, 59, 5 do
+		menu:AddItem(string.format("%02d", minute))
 	end
 end
 
 function Addon.UIElementsLib._TimePicker:AMPMMenuFunc(pMenu)
-	pMenu:AddNormalItem("AM", "AM")
-	pMenu:AddNormalItem("PM", "PM")
+	pMenu:AddItem("AM")
+	pMenu:AddItem("PM")
 end
 
 function Addon.UIElementsLib._TimePicker:SetLabel(pLabel)

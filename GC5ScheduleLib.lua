@@ -932,6 +932,9 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 	
 	local event = GroupCalendar.WoWCalendar:GetDayEvent(vMonthOffset, self.Day, self.Index)
 
+	GroupCalendar:TestMessage("_APIEventMethods:SetEvent("..pMonth.." "..pDay.." "..pYear)
+	GroupCalendar:DebugTable(event, "SetEvent event")
+
 	self.Title = event.title
 
 	if (event.sequenceType == "END") then
@@ -1226,7 +1229,7 @@ function GroupCalendar._APIEventMethods:CanSendInvite(pIgnoreOpenedEvent)
 end
 
 function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
-	local vChanged
+	local changed
 	
 	if not pIgnoreOpenedEvent then
 		assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
@@ -1238,104 +1241,106 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 	
 	local eventInfo = GroupCalendar.WoWCalendar:GetEventInfo()
 	
-	if vTextureIndex == 0 then vTextureIndex = nil end
-	
-	if self.TextureIndex ~= vTextureIndex then
-		self.TextureIndex = vTextureIndex
-		vChanged = true
+	if eventInfo.textureIndex == 0 then
+		eventInfo.textureIndex = nil
 	end
 	
-	if self.Description ~= vDescription then
-		self.Description = vDescription
-		vChanged = true
+	if self.TextureIndex ~= eventInfo.textureIndex then
+		self.TextureIndex = eventInfo.textureIndex
+		changed = true
 	end
 	
-	if self.Creator ~= vCreator then
-		self.Creator = vCreator
-		vChanged = true
+	if self.Description ~= eventInfo.description then
+		self.Description = eventInfo.description
+		changed = true
 	end
 	
-	if self.RepeatOption ~= vRepeatOption then
-		self.RepeatOption = vRepeatOption
-		vChanged = true
+	if self.Creator ~= eventInfo.creator then
+		self.Creator = eventInfo.creator
+		changed = true
 	end
 	
-	if self.MaxSize ~= vMaxSize then
-		self.MaxSize = vMaxSize
-		vChanged = true
+	if self.RepeatOption ~= eventInfo.repeatOption then
+		self.RepeatOption = eventInfo.repeatOption
+		changed = true
 	end
 	
-	if self.LockoutWeekday ~= vLockoutWeekday then
-		self.LockoutWeekday = vLockoutWeekday
-		vChanged = true
+	if self.MaxSize ~= eventInfo.maxSize then
+		self.MaxSize = eventInfo.maxSize
+		changed = true
 	end
 	
-	if self.LockoutMonth ~= vLockoutMonth then
-		self.LockoutMonth = vLockoutMonth
-		vChanged = true
+	if self.LockoutWeekday ~= eventInfo.lockoutWeekday then
+		self.LockoutWeekday = eventInfo.lockoutWeekday
+		changed = true
 	end
 	
-	if self.LockoutDay ~= vLockoutDay then
-		self.LockoutDay = vLockoutDay
-		vChanged = true
+	if self.LockoutMonth ~= eventInfo.lockoutMonth then
+		self.LockoutMonth = eventInfo.lockoutMonth
+		changed = true
 	end
 	
-	if self.LockoutYear ~= vLockoutYear then
-		self.LockoutYear = vLockoutYear
-		vChanged = true
+	if self.LockoutDay ~= eventInfo.lockoutDay then
+		self.LockoutDay = eventInfo.lockoutDay
+		changed = true
 	end
 	
-	if self.LockoutHour ~= vLockoutHour then
-		self.LockoutHour = vLockoutHour
-		vChanged = true
+	if self.LockoutYear ~= eventInfo.lockoutYear then
+		self.LockoutYear = eventInfo.lockoutYear
+		changed = true
 	end
 	
-	if self.LockoutMinute ~= vLockoutMinute then
-		self.LockoutMinute = vLockoutMinute
-		vChanged = true
+	if self.LockoutHour ~= eventInfo.lockoutHour then
+		self.LockoutHour = eventInfo.lockoutHour
+		changed = true
 	end
 	
-	if self.Locked ~= vLocked then
-		self.Locked = vLocked
-		vChanged = true
+	if self.LockoutMinute ~= eventInfo.lockoutMinute then
+		self.LockoutMinute = eventInfo.lockoutMinute
+		changed = true
 	end
 	
-	if self.AutoApprove ~= vAutoApprove then
-		self.AutoApprove = vAutoApprove
-		vChanged = true
+	if self.Locked ~= eventInfo.locked then
+		self.Locked = eventInfo.locked
+		changed = true
 	end
 	
-	if self.PendingInvite ~= vPendingInvite then
-		self.PendingInvite = vPendingInvite
-		vChanged = true
+	if self.AutoApprove ~= eventInfo.autoApprove then
+		self.AutoApprove = eventInfo.autoApprove
+		changed = true
 	end
 	
-	if self.InviteStatus ~= vInviteStatus then
-		self.InviteStatus = vInviteStatus
-		vChanged = true
+	if self.PendingInvite ~= eventInfo.pendingInvite then
+		self.PendingInvite = eventInfo.pendingInvite
+		changed = true
 	end
 	
-	if self.InviteType ~= vInviteType then
-		self.InviteType = vInviteType
-		vChanged = true
+	if self.InviteStatus ~= eventInfo.inviteStatus then
+		self.InviteStatus = eventInfo.inviteStatus
+		changed = true
 	end
 	
-	if self.CalendarType ~= vCalendarType then
-		self.CalendarType = vCalendarType
-		vChanged = true
+	if self.InviteType ~= eventInfo.inviteType then
+		self.InviteType = eventInfo.inviteType
+		changed = true
+	end
+	
+	if self.CalendarType ~= eventInfo.calendarType then
+		self.CalendarType = eventInfo.calendarType
+		changed = true
 	end
 	
 	if self:DecodeDescriptionTag() then
-		vChanged = true
+		changed = true
 	end
 	
 	if self:RefreshAttendance(pIgnoreOpenedEvent) then
-		vChanged = true
+		changed = true
 	end
 	
 	self.CacheUpdateDate, self.CacheUpdateTime = GroupCalendar.DateLib:GetServerDateTime()
 	
-	if vChanged then
+	if changed then
 		GroupCalendar.BroadcastLib:Broadcast(self, "CHANGED")
 	end
 	
@@ -1343,7 +1348,7 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 		self.OriginalEvent:GetEventInfo(true)
 	end
 	
-	return vChanged
+	return changed
 end
 
 function GroupCalendar._APIEventMethods:GetEventAttendance(pIgnoreOpenedEvent)
@@ -2067,14 +2072,14 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 				assert(vModStatus ~= "CREATOR")
 				
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("CalendarEventRemoveInvite(%s)", vName)
+					GroupCalendar:DebugMessage("Calendar.EventRemoveInvite(%s)", vName)
 				end
 				
 				self:WaitForEvent("CALENDAR_UPDATE_INVITE_LIST")
 				GroupCalendar.WoWCalendar:EventRemoveInvite(vIndex)
 				
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("CalendarEventRemoveInvite(%s): Done", vName)
+					GroupCalendar:DebugMessage("Calendar.EventRemoveInvite(%s): Done", vName)
 				end
 			end
 		end
@@ -2090,7 +2095,7 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 			
 			if not self.Attendance[vName] then
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("CalendarEventInvite(%s)", vName)
+					GroupCalendar:DebugMessage("Calendar.EventInvite(%s)", vName)
 				end
 				
 				self:WaitForEvent("CALENDAR_UPDATE_INVITE_LIST")
@@ -3567,8 +3572,8 @@ end
 function GroupCalendar:GetTextureCache()
 	if not self.textureCache then
 		self.textureCache = {}
-		self.textureCache[CALENDAR_EVENTTYPE_RAID] = self:TextureCacheForEventType(CALENDAR_EVENTTYPE_RAID, CalendarEventGetTextures(CALENDAR_EVENTTYPE_RAID))
-		self.textureCache[CALENDAR_EVENTTYPE_DUNGEON] = self:TextureCacheForEventType(CALENDAR_EVENTTYPE_DUNGEON, CalendarEventGetTextures(CALENDAR_EVENTTYPE_DUNGEON))
+		self.textureCache[CALENDAR_EVENTTYPE_RAID] = self:TextureCacheForEventType(CALENDAR_EVENTTYPE_RAID, C_Calendar.EventGetTextures(CALENDAR_EVENTTYPE_RAID))
+		self.textureCache[CALENDAR_EVENTTYPE_DUNGEON] = self:TextureCacheForEventType(CALENDAR_EVENTTYPE_DUNGEON, C_Calendar.EventGetTextures(CALENDAR_EVENTTYPE_DUNGEON))
 	end
 	return self.textureCache
 end
@@ -3703,7 +3708,7 @@ function GroupCalendar:MonitorCalendarAPI()
 	self.InWoWAPI = {}
 
 	for name, body in pairs(C_Calendar) do
-		if typeof(body) == "function" then
+		if type(body) == "function" then
 			C_Calendar[name] = function (...)
 				local result = {body(...)}
 

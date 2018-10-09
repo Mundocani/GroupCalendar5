@@ -16,7 +16,7 @@ GroupCalendar.UI._EventEditor.ItemSpacing = 5
 function GroupCalendar.UI._EventEditor:Construct(pParentFrame)
 	self:SetAllPoints()
 	
-	self.EventTypeNames = {GroupCalendar.WoWCalendar:EventGetTypes()}
+	self.EventTypeNames = C_Calendar.EventGetTypes()
 	self.EventTextures = {}
 	
 	self:SetScript("OnShow", self.OnShow)
@@ -110,6 +110,7 @@ function GroupCalendar.UI._EventEditor:Initialize()
 	self.EventModeMenu:SetPoint("TOPLEFT", self.EventTitle, "BOTTOMLEFT", 0, -self.ItemSpacing)
 	self.EventModeMenu:SetTitle(GroupCalendar.cEventModeLabel)
 	function self.EventModeMenu.ItemClicked(pMenu, pItemID)
+		DEFAULT_CHAT_FRAME:AddMessage("Item clicked")
 		self:ClearFocus()
 		self.Event:SetEventMode(pItemID)
 	end
@@ -314,7 +315,7 @@ function GroupCalendar.UI._EventEditor:OnShow()
 	self:Initialize()
 	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
 
-	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
+	GroupCalendar.EventLib:RegisterEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
 	
 	if not self.Event then
 		return
@@ -340,11 +341,11 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 	-- Set the mode
 	
 	if self.Event:IsAnnouncementEvent() then
-		self.EventModeMenu:SetSelectedValue("ANNOUNCE")
+		self.EventModeMenu:SetCurrentValueText("ANNOUNCE")
 	elseif self.Event.CalendarType == "GUILD_EVENT" then
-		self.EventModeMenu:SetSelectedValue("SIGNUP")
+		self.EventModeMenu:SetCurrentValueText("SIGNUP")
 	else
-		self.EventModeMenu:SetSelectedValue("NORMAL")
+		self.EventModeMenu:SetCurrentValueText("NORMAL")
 	end
 	
 	self.EventModeMenu:SetEnabled(self.IsNewEvent and vCanEdit)
@@ -357,10 +358,10 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 	self.Description:SetText(self.Event.Description or "")
 	self.Description:SetEnabled(vCanEdit)
 	
-	self.EventTypeMenu:SetSelectedValue(self:GetEventTypeID())
+--	self.EventTypeMenu:SetSelectedValue(self:GetEventTypeID())
 	self.EventTypeMenu:SetEnabled(vCanEdit)
 	
-	self.DifficultyMenu:SetSelectedValue(self.Event.TextureIndex)
+--	self.DifficultyMenu:SetSelectedValue(self.Event.TextureIndex)
 	self.DifficultyMenu:SetEnabled(vCanEdit)
 
 	if self.Event:IsAllDayEvent() then
@@ -371,11 +372,11 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 		self.TimePicker:SetEnabled(vCanEdit)
 		
 		self.DurationMenu:Show()
-		self.DurationMenu:SetSelectedValue(self.Event.Duration)
+--		self.DurationMenu:SetSelectedValue(self.Event.Duration)
 		self.DurationMenu:SetEnabled(vCanEdit)
 	end
 	
-	self.RepeatMenu:SetSelectedValue(self.Event.RepeatOption or 1)
+--	self.RepeatMenu:SetSelectedValue(self.Event.RepeatOption or 1)
 	self.RepeatMenu:SetEnabled(vCanEdit)
 	
 	local vEventDate = GroupCalendar.DateLib:ConvertMDYToDate(self.Event.Month, self.Event.Day, self.Event.Year)
@@ -419,7 +420,7 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 				vLockoutMinutes = "OFF"
 			end
 			
-			self.LockoutMenu:SetSelectedValue(vLockoutMinutes)
+--			self.LockoutMenu:SetSelectedValue(vLockoutMinutes)
 			self.LockoutMenu:SetEnabled(vCanEdit)
 		end
 		
@@ -563,8 +564,8 @@ function GroupCalendar.UI._EventEditor:SetEventType(pEventType, pTextureIndex)
 	end
 	
 	-- Update the UI
-	self.EventTypeMenu:SetSelectedValue(self:GetEventTypeID())
-	self.DifficultyMenu:SetSelectedValue(pTextureIndex)
+--	self.EventTypeMenu:SetSelectedValue(self:GetEventTypeID())
+--	self.DifficultyMenu:SetSelectedValue(pTextureIndex)
 	
 	-- Broadcast the change
 	GroupCalendar.BroadcastLib:Broadcast(self.Event, "CHANGED")
@@ -584,57 +585,144 @@ end
 
 
 function GroupCalendar.UI._EventEditor:EventModeMenuFunc(pMenu, pMenuID, pLevel)
-	pMenu:AddNormalItem(GroupCalendar.cSignupMode, "SIGNUP", nil, nil, not CanEditGuildEvent())
-	pMenu:AddNormalItem(GroupCalendar.cAnnounceMode, "ANNOUNCE", nil, nil, not CanEditGuildEvent())
-	pMenu:AddNormalItem(GroupCalendar.cNormalMode, "NORMAL")
+	pMenu:AddToggle(
+		GroupCalendar.cSignupMode,
+		function ()
+			return self.Event.CalendarType == "GUILD_EVENT"
+		end,
+		function (menu, value)
+			self:ClearFocus()
+			self.Event:SetEventMode("SIGNUP")
+		end,
+		not CanEditGuildEvent()
+	)
+	pMenu:AddToggle(
+		GroupCalendar.cSignupMode,
+		function ()
+			return self.Event:IsAnnouncementEvent()
+		end,
+		function (menu, value)
+			self:ClearFocus()
+			self.Event:SetEventMode("ANNOUNCE")
+		end,
+		not CanEditGuildEvent()
+	)
+	pMenu:AddToggle(
+		GroupCalendar.cSignupMode,
+		function ()
+			return self.Event.CalendarType ~= "GUILD_EVENT" and not self.Event:IsAnnouncementEvent()
+		end,
+		function (menu, value)
+			self:ClearFocus()
+			self.Event:SetEventMode("NORMAL")
+		end
+	)
 end
 	
-function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(pMenu, pMenuID, pLevel)
-	if not pMenuID then
-		local vOrderedEventTypes = {CalendarEventGetTypesDisplayOrdered()}
-		for vIndex = 1, #vOrderedEventTypes, 2 do
-			local vEventType = vOrderedEventTypes[vIndex + 1]
-			local vEventTypeName = vOrderedEventTypes[vIndex]
-			
-			if vEventType == 1 or vEventType == 2 or vEventType == 6 then
-				local vMaxExpansion = 6
-				local vMinExpansion = vEventType == 6 and 1 or 0 -- Classic didn't have heroics
-				for vExpLevel = vMaxExpansion, vMinExpansion, -1 do
-					pMenu:AddChildMenu(
-							vEventTypeName.." (".._G["EXPANSION_NAME"..vExpLevel]..")",
-							{Type = vEventType, ExpLevel = vExpLevel})
+function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu, menuID, pLevel)
+	if not menuID then
+		local orderedEventTypes = C_Calendar.EventGetTypesDisplayOrdered()[1]
+		for index, info in ipairs(orderedEventTypes) do
+			local name = _G[info.displayName] or info.displayName
+
+			if info.eventType == 1 or info.eventType == 2 or info.eventType == 6 then
+				local maxExpansion = 6
+				local minExpansion = info.eventType == 6 and 1 or 0 -- Classic didn't have heroics
+				for expansion = maxExpansion, minExpansion, -1 do
+					menu:AddChildMenu(
+							name.." (".._G["EXPANSION_NAME"..expansion]..")",
+							{Type = info.eventType, ExpLevel = expansion})
 				end
 			else
-				if vEventType == 3 then
-					pMenu:AddDivider()
+				if info.eventType == 3 then
+					menu:AddDivider()
 				end
-				
-				pMenu:AddNormalItem(
-						vEventTypeName,
-						""..vEventType.."_",
-						GroupCalendar:GetTextureFile(nil, "PLAYER", nil, vEventType),
-						self.Event and self.Event.EventType == vEventType)
+				menu:AddToggleWithIcon(
+					name,
+					GroupCalendar:GetTextureFile(nil, "PLAYER", nil, info.eventType),
+					nil,
+					function ()
+						return self.Event and self.Event.EventType == info.eventType
+					end,
+					function (menu, value)
+
+					end
+				)
 			end
 		end
 		
-		pMenu:AddNormalItem(GroupCalendar.cRoleplayEventName, "RP_", GroupCalendar.TitleTagInfo.RP.Texture, self.Event and self.Event.TitleTag == "RP")
-		pMenu:AddNormalItem(GroupCalendar.cBirthdayEventName, "BRTH_", GroupCalendar.TitleTagInfo.BRTH.Texture, self.Event and self.Event.TitleTag == "BRTH")
-		pMenu:AddNormalItem(GroupCalendar.cVacationEventName, "VAC_", GroupCalendar.TitleTagInfo.VAC.Texture, self.Event and self.Event.TitleTag == "VAC")
-		pMenu:AddNormalItem(GroupCalendar.cDoctorEventName, "MD_", GroupCalendar.TitleTagInfo.MD.Texture, self.Event and self.Event.TitleTag == "MD")
-		pMenu:AddNormalItem(GroupCalendar.cDentistEventName, "DDS_", GroupCalendar.TitleTagInfo.DDS.Texture, self.Event and self.Event.TitleTag == "DDS")
+		menu:AddToggleWithIcon(
+			GroupCalendar.cRoleplayEventName,
+			GroupCalendar.TitleTagInfo.RP.Texture,
+			nil,
+		 	function ()
+		 		return self.Event and self.Event.TitleTag == "RP"
+		 	end,
+		 	function (menu, value)
+		 	end
+		)
+
+		menu:AddToggleWithIcon(
+			GroupCalendar.cRoleplayEventName,
+			GroupCalendar.TitleTagInfo.BRTH.Texture,
+			nil,
+		 	function ()
+		 		return self.Event and self.Event.TitleTag == "BRTH"
+		 	end,
+		 	function (menu, value)
+		 	end
+		)
+
+		menu:AddToggleWithIcon(
+			GroupCalendar.cRoleplayEventName,
+			GroupCalendar.TitleTagInfo.VAC.Texture,
+			nil,
+		 	function ()
+		 		return self.Event and self.Event.TitleTag == "VAC"
+		 	end,
+		 	function (menu, value)
+		 	end
+		)
+
+		menu:AddToggleWithIcon(
+			GroupCalendar.cRoleplayEventName,
+			GroupCalendar.TitleTagInfo.MD.Texture,
+			nil,
+		 	function ()
+		 		return self.Event and self.Event.TitleTag == "MD"
+		 	end,
+		 	function (menu, value)
+		 	end
+		)
+
+		menu:AddToggleWithIcon(
+			GroupCalendar.cRoleplayEventName,
+			GroupCalendar.TitleTagInfo.DDS.Texture,
+			nil,
+		 	function ()
+		 		return self.Event and self.Event.TitleTag == "DDS"
+		 	end,
+		 	function (menu, value)
+		 	end
+		)
 	else
 		local vTextureCache = GroupCalendar:GetTextureCache()
-		local vTextureCacheForType = vTextureCache[pMenuID.Type]
+		local vTextureCacheForType = vTextureCache[menuID.Type]
 
-		local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(pMenuID.Type)
+		local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(menuID.Type)
 		
-		for vCacheIndex, vTextureInfo in ipairs(vTextureCacheForType) do
-			if vTextureInfo.expansionLevel == pMenuID.ExpLevel then
-				pMenu:AddNormalItem(
-						vTextureInfo.title,
-						""..pMenuID.Type.."_"..vTextureInfo.textureIndex,
-						GroupCalendar:GetTextureFile(vTextureInfo.texture, "PLAYER", nil, pMenuID.Type),
-						self.Event and self.Event.EventType == pMenuID.Type and self.Event.TextureIndex == vTextureInfo.textureIndex)
+		for vCacheIndex, textureInfo in ipairs(vTextureCacheForType) do
+			if textureInfo.expansionLevel == menuID.ExpLevel then
+				menu:AddToggleWithIcon(
+					textureInfo.title,
+					GroupCalendar:GetTextureFile(textureInfo.texture, "PLAYER", nil, menuID.Type),
+					nil,
+					function ()
+						return self.Event and self.Event.EventType == menuID.Type and self.Event.TextureIndex == textureInfo.textureIndex
+					end,
+					function (menu, value)
+					end
+				)
 			end
 		end
 	end
@@ -694,7 +782,7 @@ function GroupCalendar.UI._EventEditor:DurationMenuFunc(pMenu, pMenuID, pLevel)
 end
 
 function GroupCalendar.UI._EventEditor:RepeatMenuFunc(pMenu, pMenuID, pLevel)
-	local vOptions = {CalendarEventGetRepeatOptions()}
+	local vOptions = {C_Calendar.EventGetRepeatOptions()}
 	
 	for vOptionID, vOptionTitle in ipairs(vOptions) do
 		pMenu:AddNormalItem(vOptionTitle, vOptionID)
