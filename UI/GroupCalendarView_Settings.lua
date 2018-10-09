@@ -25,20 +25,10 @@ function GroupCalendar.UI._SettingsView:OnShow()
 		self.ThemeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:ThemeMenuFunc(...) end, 130)
 		self.ThemeMenu:SetPoint("TOPLEFT", self, "TOPLEFT", 200, -90)
 		self.ThemeMenu:SetTitle(GroupCalendar.cThemeLabel)
-		function self.ThemeMenu.ItemClicked(pMenu, pItemID)
-			GroupCalendar.Data.ThemeID = pItemID
-			pMenu:SetSelectedValue(GroupCalendar.Data.ThemeID)
-			GroupCalendar.UI.Window.MonthView:SetThemeID(GroupCalendar.Data.ThemeID)
-		end
 		
 		self.StartDayMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:StartDayMenuFunc(...) end, 130)
 		self.StartDayMenu:SetPoint("TOPLEFT", self.ThemeMenu, "BOTTOMLEFT", 0, -15)
 		self.StartDayMenu:SetTitle(GroupCalendar.cStartDayLabel)
-		function self.StartDayMenu.ItemClicked(pMenu, pItemID)
-			GroupCalendar.Data.StartDay = pItemID
-			pMenu:SetSelectedValue(GroupCalendar.Data.StartDay)
-			GroupCalendar.UI.Window.MonthView:SetStartDay(GroupCalendar.Data.StartDay)
-		end
 		
 		self.TwentyFourHourTime = GroupCalendar:New(GroupCalendar.UIElementsLib._CheckButton, self, GroupCalendar.cTwentyFourHourTime)
 		self.TwentyFourHourTime:SetPoint("TOPLEFT", self.StartDayMenu, "BOTTOMLEFT", 0, -15)
@@ -94,8 +84,8 @@ function GroupCalendar.UI._SettingsView:OnShow()
 			GroupCalendar.EventLib:DispatchEvent("GC5_PREFS_CHANGED")
 		end)
 	end
-	self.ThemeMenu:SetSelectedValue(GroupCalendar.Data.ThemeID or GroupCalendar.DefaultThemeID)
-	self.StartDayMenu:SetSelectedValue(GroupCalendar.Data.StartDay)
+	self:UpdateThemeMenuValue()
+	self:UpdateStartDayMenuValue()
 	self.TwentyFourHourTime:SetChecked(GetCVarBool("timeMgrUseMilitaryTime"))
 	self.AnnounceBirthdays:SetChecked(not GroupCalendar.Data.Prefs.DisableBirthdayReminders)
 	self.AnnounceEvents:SetChecked(not GroupCalendar.Data.Prefs.DisableEventReminders)
@@ -105,19 +95,54 @@ function GroupCalendar.UI._SettingsView:OnShow()
 	self.ShowMinimapClock:SetChecked(not GroupCalendar.Clock.Data.HideMinimapClock)
 end
 
-function GroupCalendar.UI._SettingsView:ThemeMenuFunc(pMenu, pMenuID)
-	local vCurrentThemeID = GroupCalendar.Data.ThemeID or GroupCalendar.DefaultThemeID
-	for vThemeID, vThemeData in pairs(GroupCalendar.Themes) do
-		pMenu:AddNormalItem(vThemeData.Name, vThemeID, nil, GroupCalendar.Data.ThemeID == vThemeID)
+function GroupCalendar.UI._SettingsView:UpdateThemeMenuValue()
+	local currentThemeID = GroupCalendar.Data.ThemeID or GroupCalendar.DefaultThemeID
+	for themeID, themeData in pairs(GroupCalendar.Themes) do
+		if themeID == currentThemeID then
+			self.ThemeMenu:SetCurrentValueText(themeData.Name)
+		end
 	end
 end
 
-function GroupCalendar.UI._SettingsView:StartDayMenuFunc(pMenu, pMenuID)
-	pMenu:AddNormalItem(WEEKDAY_SUNDAY, 1, nil, not GroupCalendar.Data.StartDay or GroupCalendar.Data.StartDay == 1)
-	pMenu:AddNormalItem(WEEKDAY_MONDAY, 2, nil, GroupCalendar.Data.StartDay == 2)
-	pMenu:AddNormalItem(WEEKDAY_TUESDAY, 3, nil, GroupCalendar.Data.StartDay == 3)
-	pMenu:AddNormalItem(WEEKDAY_WEDNESDAY, 4, nil, GroupCalendar.Data.StartDay == 4)
-	pMenu:AddNormalItem(WEEKDAY_THURSDAY, 5, nil, GroupCalendar.Data.StartDay == 5)
-	pMenu:AddNormalItem(WEEKDAY_FRIDAY, 6, nil, GroupCalendar.Data.StartDay == 6)
-	pMenu:AddNormalItem(WEEKDAY_SATURDAY, 7, nil, GroupCalendar.Data.StartDay == 7)
+GroupCalendar.UI._SettingsView.weekdays = {WEEKDAY_SUNDAY, WEEKDAY_MONDAY, WEEKDAY_TUESDAY, WEEKDAY_WEDNESDAY, WEEKDAY_THURSDAY, WEEKDAY_FRIDAY, WEEKDAY_SATURDAY}
+
+function GroupCalendar.UI._SettingsView:UpdateStartDayMenuValue()
+	local startDay = GroupCalendar.Data.StartDay or 1
+	for index, name in ipairs(self.weekdays) do
+		if index == startDay then
+			self.StartDayMenu:SetCurrentValueText(name)
+		end
+	end
+end
+
+function GroupCalendar.UI._SettingsView:ThemeMenuFunc(menu, menuID)
+	local currentThemeID = GroupCalendar.Data.ThemeID or GroupCalendar.DefaultThemeID
+	for themeID, themeData in pairs(GroupCalendar.Themes) do
+		menu:AddToggle(themeData.Name,
+			function ()
+				return GroupCalendar.Data.THemeID == themeID
+			end,
+			function (menu, value) -- set
+				GroupCalendar.Data.ThemeID = themeID
+				GroupCalendar.UI.Window.MonthView:SetThemeID(themeID)
+				self:UpdateThemeMenuValue()
+			end, nil, {
+			})
+	end
+end
+
+function GroupCalendar.UI._SettingsView:StartDayMenuFunc(menu, menuID)
+	for index, name in ipairs(self.weekdays) do
+		menu:AddToggle(
+			name,
+			function ()
+				return (GroupCalendar.Data.StartDay or 1) == index
+			end,
+			function (menu, value)
+				GroupCalendar.Data.StartDay = pItemID
+				GroupCalendar.UI.Window.MonthView:SetStartDay(GroupCalendar.Data.StartDay)
+				self:UpdateStartDayMenuValue()
+			end
+		)
+	end
 end
