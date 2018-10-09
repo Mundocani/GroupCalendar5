@@ -97,7 +97,7 @@ end
 GroupCalendar.Themes = {}
 ----------------------------------------
 
-GroupCalendar.DefaultThemeID = "LEGION"
+GroupCalendar.DefaultThemeID = "BFA"
 
 GroupCalendar.Themes.PARCHMENT =
 {
@@ -123,28 +123,28 @@ GroupCalendar.Themes.LIGHT_PARCHMENT =
 	BackgroundBrightness = 1,
 }
 
-GroupCalendar.Themes.LEGION =
+GroupCalendar.Themes.BFA =
 {
-	Name = "Legion",
+	Name = "Battle for Azeroth",
 	Background =
 	{
-		GroupCalendar.UI.AddonPath.."Textures\\January", -- Jan
-		GroupCalendar.UI.AddonPath.."Textures\\February", -- Feb
-		GroupCalendar.UI.AddonPath.."Textures\\March", -- Mar
-		GroupCalendar.UI.AddonPath.."Textures\\April", -- Apr
-		GroupCalendar.UI.AddonPath.."Textures\\May", -- May
-		GroupCalendar.UI.AddonPath.."Textures\\June", -- Jun
-		GroupCalendar.UI.AddonPath.."Textures\\July", -- Jul
-		GroupCalendar.UI.AddonPath.."Textures\\August", -- Aug
-		GroupCalendar.UI.AddonPath.."Textures\\September", -- Sep
-		GroupCalendar.UI.AddonPath.."Textures\\October", -- Oct
-		GroupCalendar.UI.AddonPath.."Textures\\November", -- Nov
-		GroupCalendar.UI.AddonPath.."Textures\\December", -- Dec
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Winter_2", -- Jan
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Winter_3", -- Feb
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Spring_1", -- Mar
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Spring_2", -- Apr
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Spring_3", -- May
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Summer_1", -- Jun
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Summer_2", -- Jul
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Summer_3", -- Aug
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Autumn_1", -- Sep
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Autumn_2", -- Oct
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Autumn_3", -- Nov
+		GroupCalendar.UI.AddonPath.."Textures\\BfA\\BfA_Winter_1", -- Dec
 	},
 	Foreground = GroupCalendar.UI.AddonPath.."Textures\\DayFrameFront-Square",
 	RandomTile = false,
 	UseShading = false,
-	BackgroundBrightness = 0.3,
+	BackgroundBrightness = 0.2,
 }
 
 ----------------------------------------

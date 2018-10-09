@@ -933,9 +933,6 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 	
 	local event = GroupCalendar.WoWCalendar:GetDayEvent(vMonthOffset, self.Day, self.Index)
 
-	GroupCalendar:TestMessage("_APIEventMethods:SetEvent("..pMonth.." "..pDay.." "..pYear)
-	GroupCalendar:DebugTable(event, "SetEvent event")
-
 	self.Title = event.title
 
 	if (event.sequenceType == "END") then
@@ -1675,7 +1672,6 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 	while invite ~= nil do
 		local responseDate, responseTime
 		local responseTime = GroupCalendar.WoWCalendar:EventGetInviteResponseTime(inviteIndex)
-		GroupCalendar:DebugTable(responseTime)
 		
 		if vYear and vYear ~= 0 then
 			vResponseDate = GroupCalendar.DateLib:ConvertMDYToDate(vMonth, vDay, vYear)

@@ -160,10 +160,8 @@ function GroupCalendar.UI._PartnersView:CreatingGuildStatus(pPartnerGuild, pStat
 		local vPartnerConfig = GroupCalendar.Partnerships:FindPartnerConfigByGuild(pPartnerGuild.Config.GuildName)
 		
 		if vPartnerConfig then
-			GroupCalendar:DebugTable(vPartnerConfig, "ExistingConfig")
 			table.insert(vPartnerConfig.Proxies, pPartnerGuild.Config.Proxies[1])
 		else
-			GroupCalendar:DebugTable(pPartnerGuild.Config, "NewConfig")
 			table.insert(GroupCalendar.PlayerData.PartnerConfigs, pPartnerGuild.Config)
 		end
 		

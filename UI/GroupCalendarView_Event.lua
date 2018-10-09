@@ -182,28 +182,21 @@ function GroupCalendar.UI._EventSidebar:Refresh()
 		return
 	end
 	
-	GroupCalendar:TestMessage("EventSidebar:Refresh")
-	GroupCalendar:DebugTable(self.Event, "   event")
-	
 	self.Title:SetText(self.Event.Title)
 
 	-- Show the Edit and Invite tabs
 	if self.Event:CanEdit() then
-		GroupCalendar:TestMessage("EventSidebar:Refresh can edit")
 		self.TabbedView:ShowView(self.EventEditor)
 
 		-- Show the Invite tab if the event uses attendance
 		if self.Event:UsesAttendance() then
-			GroupCalendar:TestMessage("EventSidebar:Refresh uses attendance")
 			self.TabbedView:ShowView(self.EventInvite)
 		else
-			GroupCalendar:TestMessage("EventSidebar:Refresh doesn't use attendance")
 			self.TabbedView:HideView(self.EventInvite)
 		end
 
 	-- Hide the Edit and Invite tabs
 	else
-		GroupCalendar:TestMessage("EventSidebar:Refresh can not edit")
 		self.TabbedView:HideView(self.EventEditor)
 		self.TabbedView:HideView(self.EventInvite)
 	end
