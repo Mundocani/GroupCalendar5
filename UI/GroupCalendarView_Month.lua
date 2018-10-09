@@ -53,8 +53,8 @@ function GroupCalendar.UI._MonthView:Construct(pParent)
 	self.TodayButton:SetPushedTexture(GroupCalendar.UI.AddonPath.."Textures\\TodayIcon-Down");
 	self.TodayButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD");
 	self.TodayButton:SetScript("OnClick", function ()
-		local _, vMonth, vDay, vYear = GroupCalendar.WoWCalendar:CalendarGetDate()
-		GroupCalendar.UI.Window:ShowDaySidebar(vMonth, vDay, vYear)
+		local calendarDate = C_Calendar.GetDate()
+		GroupCalendar.UI.Window:ShowDaySidebar(calendarDate.month, calendarDate.monthDay, calendarDate.year)
 		self:ShowCurrentMonth()
 	end)
 	
@@ -225,7 +225,7 @@ function GroupCalendar.UI._MonthView:ShowPreviousMonth()
 		self.Year = self.Year - 1
 	end
 	
-	GroupCalendar.WoWCalendar:CalendarSetAbsMonth(self.Month, self.Year)
+	C_Calendar.SetAbsMonth(self.Month, self.Year)
 	
 	self:Refresh()
 end
@@ -238,7 +238,7 @@ function GroupCalendar.UI._MonthView:ShowNextMonth()
 		self.Year = self.Year + 1
 	end
 	
-	GroupCalendar.WoWCalendar:CalendarSetAbsMonth(self.Month, self.Year)
+	C_Calendar.SetAbsMonth(self.Month, self.Year)
 	
 	self:Refresh()
 end
@@ -247,13 +247,16 @@ function GroupCalendar.UI._MonthView:ShowCurrentMonth()
 	if GroupCalendar.Clock.Data.ShowLocalTime then
 		self.TodaysMonth, self.TodaysDay, self.TodaysYear = GroupCalendar.DateLib:GetLocalMDY()
 	else
-		_, self.TodaysMonth, self.TodaysDay, self.TodaysYear = GroupCalendar.WoWCalendar:CalendarGetDate()
+		local calendarDate = C_Calendar.GetDate()
+		self.TodaysMonth = calendarDate.month
+		self.TodaysDay = calendarDate.monthDay
+		self.TodaysYear = calendarDate.year
 	end
 	
 	self.Month = self.TodaysMonth
 	self.Year = self.TodaysYear
 	
-	GroupCalendar.WoWCalendar:CalendarSetAbsMonth(self.Month, self.Year)
+	C_Calendar.SetAbsMonth(self.Month, self.Year)
 	
 	self:Refresh()
 end
@@ -282,80 +285,80 @@ function GroupCalendar.UI._MonthView:SelectDate(pMonth, pDay, pYear)
 	if vDayFrame then vDayFrame:SetSelected(true) end
 end
 
-function GroupCalendar.UI._MonthView:GetDayFrameByDate(pMonth, pDay, pYear)
-	local vPreviousMonth, vPreviousYear, vPreviousNumDays = GroupCalendar.WoWCalendar:CalendarGetMonth(-1)
-	local vMonth, vYear, vNumDays, vFirstDay = GroupCalendar.WoWCalendar:CalendarGetMonth(0)
-	local vNextMonth, vNextYear  = GroupCalendar.WoWCalendar:CalendarGetMonth(1)
-	local vDayFrameIndex
+function GroupCalendar.UI._MonthView:GetDayFrameByDate(month, day, year)
+	local previousMonthInfo = C_Calendar.GetMonthInfo(-1)
+	local currentMonthInfo = C_Calendar.GetMonthInfo(0)
+	local nextMonthInfo  = C_Calendar.GetMonthInfo(1)
+	local dayFrameIndex
 	
-	vFirstDay = (vFirstDay - (GroupCalendar.Data.StartDay or 1)) % 7 + 1
+	local firstDay = (currentMonthInfo.firstWeekday - (GroupCalendar.Data.StartDay or 1)) % 7 + 1
 	
-	if pMonth == vPreviousMonth and pYear == vPreviousYear then
-		vDayFrameIndex = vFirstDay + pDay - vPreviousNumDays - 1
+	if month == previousMonthInfo.month and year == previousMonthInfo.year then
+		dayFrameIndex = firstDay + day - previousMonthInfo.numDays - 1
 		
-	elseif pMonth == vMonth and pYear == vYear then
-		vDayFrameIndex = vFirstDay + pDay - 1
+	elseif mont == currentMonthInfo.year and year == currentMonthInfo.year then
+		dayFrameIndex = firstDay + day - 1
 	
-	elseif pMonth == vNextMonth and pYear == vNextYear then
-		vDayFrameIndex = vFirstDay + vNumDays + pDay - 1
+	elseif mont == nextMonthInfo.year and year == nextMonthInfo.year then
+		dayFrameIndex = firstDay + currentMonthInfo.numDays + day - 1
 	end
 	
-	return self.DayFrames[vDayFrameIndex]
+	return self.DayFrames[dayFrameIndex]
 end
 
 function GroupCalendar.UI._MonthView:Refresh()
-	local vPreviousMonth, vPreviousYear, vPreviousNumDays = GroupCalendar.WoWCalendar:CalendarGetMonth(-1)
-	local vMonth, vYear, vNumDays, vFirstDay = GroupCalendar.WoWCalendar:CalendarGetMonth(0)
-	local vNextMonth, vNextYear  = GroupCalendar.WoWCalendar:CalendarGetMonth(1)
+	local previousMonthInfo = C_Calendar.GetMonthInfo(-1)
+	local currentMonthInfo = C_Calendar.GetMonthInfo(0)
+	local nextMonthInfo  = C_Calendar.GetMonthInfo(1)
+
+	self.MonthYearText:SetText(string.format("%s %04d", GroupCalendar.CALENDAR_MONTH_NAMES[currentMonthInfo.month], currentMonthInfo.year))
 	
-	self.MonthYearText:SetText(string.format("%s %04d", GroupCalendar.CALENDAR_MONTH_NAMES[vMonth], vYear))
-	
-	vFirstDay = (vFirstDay - (GroupCalendar.Data.StartDay or 1)) % 7 + 1
+	local firstDay = (currentMonthInfo.firstWeekday - (GroupCalendar.Data.StartDay or 1)) % 7 + 1
 	
 	-- 
 	
-	local vDidShowToday
+	local didShowToday
 	
-	for vDayFrameIndex, vDayFrame in ipairs(self.DayFrames) do
+	for dayFrameIndex, dayFrame in ipairs(self.DayFrames) do
 		local vFrameMonth, vFrameDay, vFrameYear
 		
-		if vDayFrameIndex < vFirstDay then
-			vFrameMonth = vPreviousMonth
-			vFrameDay = vPreviousNumDays + vDayFrameIndex - vFirstDay + 1
-			vFrameYear = vPreviousYear
+		if dayFrameIndex < firstDay then
+			vFrameMonth = previousMonthInfo.month
+			vFrameDay = previousMonthInfo.numDays + dayFrameIndex - firstDay + 1
+			vFrameYear = previousMonthInfo.year
 		else
-			vFrameDay = vDayFrameIndex - vFirstDay + 1
+			vFrameDay = dayFrameIndex - firstDay + 1
 			
-			if vFrameDay <= vNumDays then
-				vFrameMonth = vMonth
-				vFrameYear = vYear
+			if vFrameDay <= currentMonthInfo.numDays then
+				vFrameMonth = currentMonthInfo.month
+				vFrameYear = currentMonthInfo.year
 			else
-				vFrameMonth = vNextMonth
-				vFrameDay = vFrameDay - vNumDays
-				vFrameYear = vNextYear
+				vFrameMonth = nextMonthInfo.month
+				vFrameDay = vFrameDay - currentMonthInfo.numDays
+				vFrameYear = nextMonthInfo.year
 			end
 		end
 		
-		vDayFrame:SetDate(vFrameMonth, vFrameDay, vFrameYear, vMonth)
-		vDayFrame:Show()
+		dayFrame:SetDate(vFrameMonth, vFrameDay, vFrameYear, vMonth)
+		dayFrame:Show()
 		
 		if vFrameMonth == self.TodaysMonth
 		and vFrameDay == self.TodaysDay
 		and vFrameYear == self.TodaysYear then
-			self.TodayHighlight:SetPoint("CENTER", vDayFrame, "CENTER")
+			self.TodayHighlight:SetPoint("CENTER", dayFrame, "CENTER")
 			self.TodayHighlight:Show()
 			
-			vDidShowToday = true
+			didShowToday = true
 		end
 		
 		if vFrameMonth == self.SelectedMonth
 		and vFrameDay == self.SelectedDay
 		and vFrameYear == self.SelectedYear then
-			vDayFrame:SetSelected(true)
+			dayFrame:SetSelected(true)
 		end
 	end
 	
-	if not vDidShowToday then
+	if not didShowToday then
 		self.TodayHighlight:Hide()
 	end
 end
@@ -1292,7 +1295,7 @@ function GroupCalendar._DayContextMenu:InitMenu(pLevel, pMenuList)
 	end
 	
 	local vCanCreate = GroupCalendar:CanCreateEventOnDate(self.Month, self.Day, self.Year)
-	local vCanPaste = vCanCreate and GroupCalendar.WoWCalendar:CalendarContextEventClipboard()
+	local vCanPaste = vCanCreate and C_Calendar.ContextEventClipboard()
 	
 	if vCanCreate and vCanPaste then
 		self:AddDivider()
@@ -1306,7 +1309,7 @@ function GroupCalendar._DayContextMenu:ItemClicked(pValue)
 	or pValue == "GUILD_ANNOUNCEMENT" then
 		GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, pValue)
 	elseif pValue == "PASTE" then
-		GroupCalendar.WoWCalendar:CalendarContextEventPaste(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day);
+		C_Calendar.ContextEventPaste(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day);
 	end
 end
 

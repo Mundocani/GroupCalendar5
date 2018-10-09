@@ -75,15 +75,15 @@ function Addon.DateLib:GetServerTime()
 end
 
 function Addon.DateLib:GetServerDateTime()
-	local _, vMonth, vDay, vYear = CalendarGetDate()
+	local currentDate = C_Calendar.GetDate()
 	
-	if not vMonth or vMonth <= 0 then
-		Addon:ErrorMessage("GetServerDateTime: CalendarGetDate() not ready")
+	if not currentDate or not currentDate.month or currentDate.month <= 0 then
+		Addon:ErrorMessage("GetServerDateTime: C_Calendar.GetDate() not ready")
 		Addon:DebugStack()
 		return
 	end
 	
-	return self:ConvertMDYToDate(vMonth, vDay, vYear), self:GetServerTime(), vMonth, vDay, vYear
+	return self:ConvertMDYToDate(currentDate.month, currentDate.monthDay, currentDate.year), self:GetServerTime(), currentDate.month, currentDate.monthDay, currentDate.year
 end
 
 function Addon.DateLib:GetServerDateTime60()
@@ -97,10 +97,10 @@ function Addon.DateLib:GetServerDateTimeStamp()
 end
 
 function Addon.DateLib:GetServerMonthOffsetDate(pDate)
-	local vMonth, vDay, vYear = ConvertDateToMDY(pDate)
-	local _, vCurrentMonth, vCurrentDay, vCurrentYear = CalendarGetDate()
+	local month, day, year = ConvertDateToMDY(pDate)
+	local currentDate = C_Calendar.GetDate()
 	
-	return vMonth - vCurrentMonth, vDay
+	return month - currentDate.month, day
 end
 
 ----------------------------------------

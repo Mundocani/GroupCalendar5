@@ -6,9 +6,6 @@
 GroupCalendar_Data = nil
 
 function GroupCalendar:Initialize()
-	-- Not sure if I still need MonitorCalendarAPIRecursion, so I'm disabling it to see what happens
-	-- GroupCalendar:MonitorCalendarAPIRecursion()
-	
 	GroupCalendar.EventLib:UnregisterEvent("PLAYER_ENTERING_WORLD", GroupCalendar.Initialize, GroupCalendar)
 	
 	if not self.WoWCalendar then
@@ -31,10 +28,10 @@ function GroupCalendar:Initialize()
 	-- Queue a command to start loading the calendar data
 	
 	self.SchedulerLib:ScheduleTask(5, function ()
-		local _, vMonth, vDay, vYear = GroupCalendar.WoWCalendar:CalendarGetDate()
+		local calendarDate = C_Calendar.GetDate()
 		
-		GroupCalendar.WoWCalendar:CalendarSetAbsMonth(vMonth, vYear)
-		OpenCalendar()
+		C_Calendar.SetAbsMonth(calendarDate.month, calendarDate.year)
+		C_Calendar.OpenCalendar()
 	end)
 	
 	--
@@ -206,7 +203,7 @@ function GroupCalendar:CanCreateEventOnDate(pMonth, pDay, pYear)
 end
 
 function GroupCalendar:IsTodayOrLater(pMonth, pDay, pYear)
-	local _, vMonth, vDay, vYear = GroupCalendar.WoWCalendar:CalendarGetDate()
+	local calendarDate = C_Calendar.GetDate()
 	
 	if pYear > vYear then
 		return true
@@ -222,7 +219,7 @@ function GroupCalendar:IsTodayOrLater(pMonth, pDay, pYear)
 end
 
 function GroupCalendar:IsAfterMaxCreateDate(pMonth, pDay, pYear)
-	local _, vMonth, vDay, vYear = GroupCalendar.WoWCalendar:CalendarGetMaxCreateDate()
+	local maxCreateDate = C_Calendar.GetMaxCreateDate()
 	
 	if pYear > vYear then
 		return true
@@ -800,7 +797,7 @@ function GroupCalendar:FindEventTemplateByTitle(pTitle)
 	local vUpperTitle = pTitle:upper()
 	
 	for vIndex, vTemplate in ipairs(self.PlayerData.EventTemplates) do
-		local vTemplateTitle = GroupCalendar.WoWCalendar:CalendarGetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
+		local vTemplateTitle = C_Calendar.GetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
 		local vTemplateUpperTitle = vTemplateTitle:upper()
 		
 		if vTemplateUpperTitle == vUpperTitle then
@@ -818,7 +815,7 @@ function GroupCalendar:FindEventTemplateByPartialTitle(pTitle)
 	local vUpperTitleLen = vUpperTitle:len()
 	
 	for vIndex, vTemplate in ipairs(self.PlayerData.EventTemplates) do
-		local vTemplateTitle = GroupCalendar.WoWCalendar:CalendarGetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
+		local vTemplateTitle = C_Calendar.GetDisplayTitle(vTemplate.CalendarType, vTemplate.SequenceType, vTemplate.Title or "")
 		local vTemplateUpperTitle = vTemplateTitle:upper()
 		
 		if vTemplateUpperTitle:sub(1, vUpperTitleLen) == vUpperTitle then

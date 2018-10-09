@@ -5,95 +5,6 @@
 
 local _
 
-GroupCalendar.cBlizzardCalendarFunctionNames =
-{
-	"CalendarAddEvent",
-	"CalendarCanAddEvent",
-	"CalendarCanSendInvite",
-	"CalendarCloseEvent",
-	"CalendarContextEventCanComplain",
-	"CalendarContextEventCanEdit",
-	"CalendarContextEventClipboard",
-	"CalendarContextEventComplain",
-	"CalendarContextEventCopy",
-	"CalendarContextEventIsGuildWide",
-	"CalendarContextInviteAvailable",
-	"CalendarContextInviteDecline",
-	"CalendarContextInviteRemove",
-	"CalendarContextInviteTentative",
-	"CalendarContextEventPaste",
-	"CalendarContextEventRemove",
-	"CalendarContextEventSignUp",
-	"CalendarContextInviteIsPending",
-	"CalendarContextInviteStatus",
-	"CalendarContextSelectEvent",
-	"CalendarDefaultGuildFilter",
-	"CalendarEventAvailable",
-	"CalendarEventCanEdit",
-	"CalendarEventClearAutoApprove",
-	"CalendarEventClearLocked",
-	"CalendarEventClearModerator",
-	"CalendarEventDecline",
-	"CalendarEventGetInvite",
-	"CalendarEventGetInviteResponseTime",
-	"CalendarEventGetInviteSortCriterion",
-	"CalendarEventGetNumInvites",
-	"CalendarEventGetRepeatOptions",
-	"CalendarEventGetSelectedInvite",
-	"CalendarEventGetStatusOptions",
-	"CalendarEventGetTextures",
-	"CalendarEventGetTypes",
-	"CalendarEventHasPendingInvite",
-	"CalendarEventHaveSettingsChanged",
-	"CalendarEventInvite",
-	"CalendarEventIsGuildWide",
-	"CalendarEventRemoveInvite",
-	"CalendarEventSelectInvite",
-	"CalendarEventSetAutoApprove",
-	"CalendarEventSetDate",
-	"CalendarEventSetDescription",
-	"CalendarEventSetLocked",
-	"CalendarEventSetLockoutDate",
-	"CalendarEventSetLockoutTime",
-	"CalendarEventSetModerator",
-	"CalendarEventSetRepeatOption",
-	"CalendarEventSetSize",
-	"CalendarEventSetStatus",
-	"CalendarEventSetTextureID",
-	"CalendarEventSetTime",
-	"CalendarEventSetTitle",
-	"CalendarEventSetType",
-	"CalendarEventSortInvites",
-	"CalendarEventSignUp",
-	"CalendarEventTentative",
-	"CanSendInvite",
-	"CalendarGetAbsMonth",
-	"CalendarGetDate",
-	"CalendarGetDay",
-	"CalendarGetDayEvent",
-	"CalendarGetEventIndex",
-	"CalendarGetEventInfo",
-	"CalendarGetFirstPendingInvite",
-	"CalendarGetHolidayInfo",
-	"CalendarGetMaxCreateDate",
-	"CalendarGetMinDate",
-	"CalendarGetMonth",
-	"CalendarGetNumDayEvents",
-	"CalendarGetNumPendingInvites",
-	"CalendarGetRaidInfo",
-	"CalendarIsActionPending",
-	"CalendarMassInviteGuild",
-	"CalendarNewArenaTeamEvent",
-	"CalendarNewEvent",
-	"CalendarNewGuildEvent",
-	"CalendarNewGuildAnnouncement",
-	"CalendarOpenEvent",
-	"CalendarRemoveEvent",
-	"CalendarSetAbsMonth",
-	"CalendarSetMonth",
-	"CalendarUpdateEvent",
-}
-
 -- Invite Statuses
 
 GroupCalendar.CALENDAR_EVENTCOLOR_MODERATOR = {r = 0.54, g = 0.75, b = 1.0}
@@ -279,7 +190,10 @@ function GroupCalendar._Calendar:GetLocalSchedule(pMonth, pDay, pYear)
 end
 
 function GroupCalendar._Calendar:Synchronize()
-	_, self.CurrentMonth, self.CurrentDay, self.CurrentYear = GroupCalendar.WoWCalendar:CalendarGetDate()
+	local currentDate = C_Calendar:GetDate()
+	self.CurrentMonth = currentDate.month
+	self.CurrentDay = currentDate.day
+	self.CurrentYear = currentDate.year
 	self.CurrentDate = GroupCalendar.DateLib:ConvertMDYToDate(self.CurrentMonth, self.CurrentDay, self.CurrentYear)
 	
 	local vCutoffDate = self.CurrentDate - self.cMaxHistory
@@ -317,8 +231,8 @@ function GroupCalendar._Calendar:Synchronize()
 end
 
 function GroupCalendar._Calendar:HasDayEvents(pMonth, pDay, pYear)
-	local vMonthOffset = GroupCalendar.WoWCalendar:CalendarGetMonthOffset(pMonth, pYear)
-	local vNumEvents = GroupCalendar.WoWCalendar:CalendarGetNumDayEvents(vMonthOffset, pDay) 
+	local vMonthOffset = GroupCalendar:GetMonthOffset(pMonth, pYear)
+	local vNumEvents = C_Calendar.GetNumDayEvents(vMonthOffset, pDay)
 	
 	SetCVar("calendarShowLockouts", 1)
 	
@@ -326,7 +240,7 @@ function GroupCalendar._Calendar:HasDayEvents(pMonth, pDay, pYear)
 		local vTitle, vHour, vMinute,
 		      vCalendarType, vSequenceType, vEventType,
 		      vTextureID, vModStatus, vInviteStatus, vInvitedBy,
-		      vDifficulty, vInviteType, vSequenceIndex, vNumSequenceDays, vDifficultyName = GroupCalendar.WoWCalendar:CalendarGetDayEvent(vMonthOffset, pDay, vEventIndex)
+		      vDifficulty, vInviteType, vSequenceIndex, vNumSequenceDays, vDifficultyName = C_Calendar.GetDayEvent(vMonthOffset, pDay, vEventIndex)
 		
 		if (self.CalendarID == GroupCalendar._CalendarDay.cBlizzardCalendarIDs[vCalendarType])
 		or (self.CalendarID ~= "BLIZZARD" and not GroupCalendar._CalendarDay.cBlizzardCalendarIDs[vCalendarType]) then
@@ -358,7 +272,7 @@ function GroupCalendar._Calendar:IsAfterMaxCreateDate(pMonth, pDay, pYear)
 		error("Expected month, day, year")
 	end
 	
-	local _, vMaxMonth, vMaxDay, vMaxYear = GroupCalendar.WoWCalendar:CalendarGetMaxCreateDate()
+	local _, vMaxMonth, vMaxDay, vMaxYear = C_Calendar.GetMaxCreateDate()
 	
 	if pYear > vMaxYear then
 		return true
@@ -440,8 +354,8 @@ function GroupCalendar._CalendarDay:SynchronizeEvents(pMonth, pDay, pYear)
 	
 	-- Collect the events from the WoW calendar
 	
-	local vMonthOffset = GroupCalendar.WoWCalendar:CalendarGetMonthOffset(pMonth, pYear)
-	local vNumEvents = GroupCalendar.WoWCalendar:CalendarGetNumDayEvents(vMonthOffset, pDay) 
+	local vMonthOffset = GroupCalendar:GetMonthOffset(pMonth, pYear)
+	local vNumEvents = C_Calendar.GetNumDayEvents(vMonthOffset, pDay)
 	
 	SetCVar("calendarShowLockouts", 1)
 	
@@ -602,7 +516,7 @@ function GroupCalendar:GetEventTypeTextures(pEventType)
 	if not vEventTypeTextures then
 		vEventTypeTextures = {}
 		
-		local vTextures = {GroupCalendar.WoWCalendar:CalendarEventGetTextures(pEventType)}
+		local vTextures = {C_Calendar.EventGetTextures(pEventType)}
 		local vTextureIndex = 1
 
 		for vIndex = 1, #vTextures, 6 do
@@ -625,7 +539,7 @@ function GroupCalendar:InitializeEventDefaults()
 	GroupCalendar.DefaultEventLimits = {}
 	GroupCalendar.DefaultEventLevel = {}
 	
-	local vEventTypeNames = {GroupCalendar.WoWCalendar:CalendarEventGetTypes()}
+	local vEventTypeNames = {C_Calendar.EventGetTypes()}
 	
 	for vEventType, vEventTypeName in ipairs(vEventTypeNames) do
 		GroupCalendar.DefaultEventLimits[vEventType] = {}
@@ -695,6 +609,13 @@ function GroupCalendar:InitializeEventDefaults()
 			end -- for vTextureIndex
 		end -- if vEventType
 	end -- for vEventType
+end
+
+function GroupCalendar:GetMonthOffset(month, year)
+	local calendarDate = C_Calendar.GetDate()
+	local calendarMonthYear = calendarDate.year * 12 + calendarDate.month
+	local monthYear = year * 12 + month
+	return monthYear - calendarMonthYear
 end
 
 ----------------------------------------
@@ -1006,7 +927,7 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 		return self:NewEvent(pOwnersName, pMonth, pDay, pYear)
 	end
 	
-	local vMonthOffset = GroupCalendar.WoWCalendar:CalendarGetMonthOffset(pMonth, pYear)
+	local vMonthOffset = GroupCalendar:GetMonthOffset(pMonth, pYear)
 	
 	self.Month = pMonth
 	self.Day = pDay
@@ -1016,7 +937,7 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 	self.OwnersName = pOwnersName
 	self.RealmName = GroupCalendar.RealmName
 	
-	local event = GroupCalendar.WoWCalendar:CalendarGetDayEvent(vMonthOffset, self.Day, self.Index)
+	local event = C_Calendar.GetDayEvent(vMonthOffset, self.Day, self.Index)
 
 	self.Title = event.title
 
@@ -1041,13 +962,13 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 	self.NumSequenceDays = event.numSequenceDays
 	self.DifficultyName = event.difficultyName
 
-	self.TitleTag = GroupCalendar.WoWCalendar:CalendarEventGetTitleTag()
+	self.TitleTag = C_Calendar.EventGetTitleTag()
 	
-	self.EventCanComplain = GroupCalendar.WoWCalendar:CalendarContextEventCanComplain(vMonthOffset, self.Day, self.Index)
+	self.EventCanComplain = C_Calendar.ContextEventCanComplain(vMonthOffset, self.Day, self.Index)
 	
 	if self.CalendarType == "GUILD"
 	and CalendarContextEventIsGuildWide
-	and not GroupCalendar.WoWCalendar:CalendarContextEventIsGuildWide(vMonthOffset, self.Day, self.Index) then
+	and not C_Calendar.ContextEventIsGuildWide(vMonthOffset, self.Day, self.Index) then
 		self.CalendarType = "PLAYER"
 	end
 	
@@ -1060,10 +981,10 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 		self.Title = string.format(DUNGEON_NAME_WITH_DIFFICULTY, self.Title or "nil", self.DifficultyName or "nil")
 	end
 	
-	self.Title = GroupCalendar.WoWCalendar:CalendarGetDisplayTitle(self.CalendarType, self.SequenceType, self.Title)
+	self.Title = C_Calendar.GetDisplayTitle(self.CalendarType, self.SequenceType, self.Title)
 	
 	if self.CalendarType == "HOLIDAY" then
-		_, self.Description, _ = GroupCalendar.WoWCalendar:CalendarGetHolidayInfo(vMonthOffset, self.Day, self.Index)
+		_, self.Description, _ = C_Calendar.GetHolidayInfo(vMonthOffset, self.Day, self.Index)
 	elseif self.CalendarType == "RAID_LOCKOUT"
 	or self.CalendarType == "RAID_RESET" then
 		self.Description = ""
@@ -1090,15 +1011,15 @@ function GroupCalendar._APIEventMethods:Open()
 	SetCVar("calendarShowLockouts", 1) -- Make sure this is on so indices are correct
 	
 	if self.Index then
-		GroupCalendar.WoWCalendar:CalendarOpenEvent(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+		C_Calendar.OpenEvent(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 		GroupCalendar.WoWCalendar.OpenedEvent = self
 	else
 		if self.CalendarType == "GUILD_EVENT" then
-			GroupCalendar.WoWCalendar:CalendarNewGuildEvent()
+			C_Calendar.CreateGuildSignUpEvent()
 		elseif self.CalendarType == "GUILD_ANNOUNCEMENT" then
-			GroupCalendar.WoWCalendar:CalendarNewGuildAnnouncement()
+			C_Calendar.CreateGuildAnnouncementEvent()
 		else
-			GroupCalendar.WoWCalendar:CalendarNewEvent()
+			C_Calendar.CreatePlayerEvent()
 		end
 		
 		GroupCalendar.WoWCalendar.OpenedEvent = self
@@ -1118,19 +1039,19 @@ function GroupCalendar._APIEventMethods:Open()
 end
 
 function GroupCalendar._APIEventMethods:InitializeNewEvent()
-	GroupCalendar.WoWCalendar:CalendarEventSetDate(self.Month, self.Day, self.Year)
+	C_Calendar.EventSetDate(self.Month, self.Day, self.Year)
 	
-	GroupCalendar.WoWCalendar:CalendarEventSetTime(self.Hour or 0, self.Minute or 0)
+	C_Calendar.EventSetTime(self.Hour or 0, self.Minute or 0)
 	
-	GroupCalendar.WoWCalendar:CalendarEventSetTitle(self.Title)
-	GroupCalendar.WoWCalendar:CalendarEventSetTitleTag(self.TitleTag)
-	GroupCalendar.WoWCalendar:CalendarEventSetDescription(self.Description)
-	GroupCalendar.WoWCalendar:CalendarEventSetDescriptionTag(self.DescriptionTag)
-	GroupCalendar.WoWCalendar:CalendarEventSetType(self.EventType)
+	C_Calendar.EventSetTitle(self.Title)
+	C_Calendar.EventSetTitleTag(self.TitleTag)
+	C_Calendar.EventSetDescription(self.Description)
+	C_Calendar.EventSetDescriptionTag(self.DescriptionTag)
+	C_Calendar.EventSetType(self.EventType)
 	if self.TextureIndex then
-		GroupCalendar.WoWCalendar:CalendarEventSetTextureID(self.TextureIndex)
+		C_Calendar.EventSetTextureID(self.TextureIndex)
 	end
-	GroupCalendar.WoWCalendar:CalendarEventSetRepeatOption(self.RepeatOption)
+	C_Calendar.EventSetRepeatOption(self.RepeatOption)
 	
 	self:GetEventInfo()
 end
@@ -1147,8 +1068,8 @@ function GroupCalendar._APIEventMethods:SetEventMode(pMode)
 		end
 		
 		self.ChangingMode = true
-		GroupCalendar.WoWCalendar:CalendarCloseEvent()
-		GroupCalendar.WoWCalendar:CalendarNewGuildEvent()
+		C_Calendar.CloseEvent()
+		C_Calendar.CreateGuildSignupEvent()
 		self.ChangingMode = nil
 	
 		self.CalendarType = "GUILD_EVENT"
@@ -1160,8 +1081,8 @@ function GroupCalendar._APIEventMethods:SetEventMode(pMode)
 		end
 		
 		self.ChangingMode = true
-		GroupCalendar.WoWCalendar:CalendarCloseEvent()
-		GroupCalendar.WoWCalendar:CalendarNewGuildAnnouncement()
+		C_Calendar.CloseEvent()
+		C_Calendar.CreateGuildAnnouncementEvent()
 		self.ChangingMode = nil
 		
 		self.CalendarType = "GUILD_ANNOUNCEMENT"
@@ -1172,8 +1093,8 @@ function GroupCalendar._APIEventMethods:SetEventMode(pMode)
 		end
 		
 		self.ChangingMode = true
-		GroupCalendar.WoWCalendar:CalendarCloseEvent()
-		GroupCalendar.WoWCalendar:CalendarNewEvent()
+		C_Calendar.CloseEvent()
+		C_Calendar.CreatePlayerEvent()
 		self.ChangingMode = nil
 		
 		self.CalendarType = "PLAYER"
@@ -1190,7 +1111,7 @@ end
 function GroupCalendar._APIEventMethods:Close()
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
-	GroupCalendar.WoWCalendar:CalendarCloseEvent()
+	C_Calendar.CloseEvent()
 end
 
 function GroupCalendar._APIEventMethods:GetShadowCopy()
@@ -1228,22 +1149,22 @@ function GroupCalendar._APIEventMethods:Save()
 	self:UpdateDescriptionTag()
 	
 	if self.Index then
-		GroupCalendar.WoWCalendar:CalendarUpdateEvent()
+		C_Calendar.UpdateEvent()
 	else
-		GroupCalendar.WoWCalendar:CalendarAddEvent()
+		C_Calendar.AddEvent()
 	end
 end
 
 function GroupCalendar._APIEventMethods:Copy()
-	GroupCalendar.WoWCalendar:CalendarContextEventCopy(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+	C_Calendar.ContextEventCopy(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 end
 
 function GroupCalendar._APIEventMethods:Delete()
 	if self.Index then
 		if self.ModStatus == "CREATOR" then
-			GroupCalendar.WoWCalendar:CalendarContextEventRemove(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+			C_Calendar.ContextEventRemove(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 		else
-			GroupCalendar.WoWCalendar:CalendarContextInviteRemove(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index) 
+			C_Calendar.ContextInviteRemove(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 		end
 	else
 		-- Nothing to do for new events
@@ -1309,7 +1230,7 @@ end
 function GroupCalendar._APIEventMethods:CanSendInvite(pIgnoreOpenedEvent)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self or pIgnoreOpenedEvent)
 	
-	return GroupCalendar.WoWCalendar:CalendarCanSendInvite()
+	return C_Calendar.CanSendInvite()
 end
 
 function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
@@ -1347,7 +1268,7 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 	      vPendingInvite,
 	      vInviteStatus,
 	      vInviteType,
-	      vCalendarType = GroupCalendar.WoWCalendar:CalendarGetEventInfo()
+	      vCalendarType = C_Calendar.GetEventInfo()
 	
 	if vTextureIndex == 0 then vTextureIndex = nil end
 	
@@ -1486,7 +1407,7 @@ function GroupCalendar._APIEventMethods:GetEventAttendance(pIgnoreOpenedEvent)
 end
 
 function GroupCalendar._APIEventMethods:DecodeDescriptionTag()
-	local vDescriptionTag = GroupCalendar.WoWCalendar:CalendarEventGetDescriptionTag()
+	local vDescriptionTag = C_Calendar.EventGetDescriptionTag()
 	local vChanged
 	
 	if not self.DescriptionTags then
@@ -1591,56 +1512,56 @@ function GroupCalendar._APIEventMethods:SetDate(pMonth, pDay, pYear)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.Month, self.Day, self.Year = pMonth, pDay, pYear
-	GroupCalendar.WoWCalendar:CalendarEventSetDate(pMonth, pDay, pYear)
+	C_Calendar.EventSetDate(pMonth, pDay, pYear)
 end
 
 function GroupCalendar._APIEventMethods:SetTime(pHour, pMinute)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.Hour, self.Minute = pHour, pMinute
-	GroupCalendar.WoWCalendar:CalendarEventSetTime(pHour or 0, pMinute or 0)
+	C_Calendar.EventSetTime(pHour or 0, pMinute or 0)
 end
 
 function GroupCalendar._APIEventMethods:SetLockoutDate(pMonth, pDay, pYear)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.LockoutMonth, self.LockoutDay, self.LockoutYear = pMonth, pDay, pYear
-	GroupCalendar.WoWCalendar:CalendarEventSetLockoutDate(pMonth, pDay, pYear)
+	C_Calendar.EventSetLockoutDate(pMonth, pDay, pYear)
 end
 
 function GroupCalendar._APIEventMethods:SetLockoutTime(pHour, pMinute)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.LockoutHour, self.LockoutMinute = pHour, pMinute
-	GroupCalendar.WoWCalendar:CalendarEventSetLockoutTime(pHour, pMinute)
+	C_Calendar.EventSetLockoutTime(pHour, pMinute)
 end
 
 function GroupCalendar._APIEventMethods:SetTitle(pTitle)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.Title = pTitle
-	GroupCalendar.WoWCalendar:CalendarEventSetTitle(pTitle)
+	C_Calendar.EventSetTitle(pTitle)
 end
 
 function GroupCalendar._APIEventMethods:SetTitleTag(pTitleTag)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.TitleTag = pTitleTag
-	GroupCalendar.WoWCalendar:CalendarEventSetTitleTag(pTitleTag)
+	C_Calendar.EventSetTitleTag(pTitleTag)
 end
 
 function GroupCalendar._APIEventMethods:SetDescription(pDescription)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.Description = pDescription
-	GroupCalendar.WoWCalendar:CalendarEventSetDescription(pDescription)
+	C_Calendar.EventSetDescription(pDescription)
 end
 
 function GroupCalendar._APIEventMethods:SetDescriptionTag(pDescriptionTag)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.DescriptionTag = pDescriptionTag
-	GroupCalendar.WoWCalendar:CalendarEventSetDescriptionTag(pDescriptionTag)
+	C_Calendar.EventSetDescriptionTag(pDescriptionTag)
 	GroupCalendar.BroadcastLib:Broadcast(self, "CHANGED")
 end
 
@@ -1650,10 +1571,10 @@ function GroupCalendar._APIEventMethods:SetType(pEventType, pTextureIndex)
 	self.EventType = pEventType
 	self.TextureIndex = pTextureIndex
 	
-	GroupCalendar.WoWCalendar:CalendarEventSetType(pEventType)
+	C_Calendar.EventSetType(pEventType)
 	
 	if self.TextureIndex then
-		GroupCalendar.WoWCalendar:CalendarEventSetTextureID(self.TextureIndex)
+		C_Calendar.EventSetTextureID(self.TextureIndex)
 	end
 end
 
@@ -1661,16 +1582,16 @@ function GroupCalendar._APIEventMethods:SetRepeatOption(pRepeatOption)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	self.RepeatOption = pRepeatOption
-	GroupCalendar.WoWCalendar:CalendarEventSetRepeatOption(pRepeatOption)
+	C_Calendar.EventSetRepeatOption(pRepeatOption)
 end
 
 function GroupCalendar._APIEventMethods:SetLocked(pLocked)
 	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	
 	if pLocked then
-		GroupCalendar.WoWCalendar:CalendarEventSetLocked()
+		C_Calendar.EventSetLocked()
 	else
-		GroupCalendar.WoWCalendar:CalendarEventClearLocked()
+		C_Calendar.EventClearLocked()
 	end
 end
 
@@ -1775,14 +1696,14 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 		end
 	end
 	
-	self.NumInvites = GroupCalendar.WoWCalendar:CalendarEventGetNumInvites() or 0
+	self.NumInvites = C_Calendar.EventGetNumInvites() or 0
 	
 	for vIndex = 1, self.NumInvites do
-		local vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = GroupCalendar.WoWCalendar:CalendarEventGetInvite(vIndex)
+		local vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = C_Calendar.EventGetInvite(vIndex)
 		local vResponseDate, vResponseTime
 		
 		if CalendarEventGetInviteResponseTime then
-			local vWeekday, vMonth, vDay, vYear, vHour, vMinute = GroupCalendar.WoWCalendar:CalendarEventGetInviteResponseTime(vIndex)
+			local vWeekday, vMonth, vDay, vYear, vHour, vMinute = C_Calendar.EventGetInviteResponseTime(vIndex)
 			
 			if vYear and vYear ~= 0 then
 				vResponseDate = GroupCalendar.DateLib:ConvertMDYToDate(vMonth, vDay, vYear)
@@ -1919,9 +1840,9 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 end
 
 function GroupCalendar._APIEventMethods:MassInvite(pMinLevel, pMaxLevel, pMinRank)
-	local _, vDefaultMaxLevel = GroupCalendar.WoWCalendar:CalendarDefaultGuildFilter()
+	local _, vDefaultMaxLevel = C_Calendar.DefaultGuildFilter()
 	
-	GroupCalendar.WoWCalendar:CalendarMassInviteGuild(pMinLevel or 1, pMaxLevel or vDefaultMaxLevel, pMinRank)
+	C_Calendar.MassInviteGuild(pMinLevel or 1, pMaxLevel or vDefaultMaxLevel, pMinRank)
 end
 
 function GroupCalendar._APIEventMethods:ReadyToContinueInvites()
@@ -1933,7 +1854,7 @@ function GroupCalendar._APIEventMethods:ReadyToContinueInvites()
 		return false
 	end
 	
-	if GroupCalendar.WoWCalendar:CalendarIsActionPending() then
+	if C_Calendar.IsActionPending() then
 		-- Listen for action pending events so we can tell when the API is available again
 		
 		if not GroupCalendar.EventLib:EventIsRegistered("CALENDAR_ACTION_PENDING", self.CalendarActionPending, self) then
@@ -1945,7 +1866,7 @@ function GroupCalendar._APIEventMethods:ReadyToContinueInvites()
 	
 	GroupCalendar.EventLib:UnregisterEvent("CALENDAR_ACTION_PENDING", self.CalendarActionPending, self)
 	
-	if not GroupCalendar.WoWCalendar:CalendarCanSendInvite() then
+	if not C_Calendar.CanSendInvite() then
 		-- Start the timer so we can tell when invites are available again
 		GroupCalendar.SchedulerLib:ScheduleUniqueRepeatingTask(0.1, self.CheckCanSendInvite, self)
 		return false
@@ -1994,7 +1915,7 @@ function GroupCalendar._APIEventMethods:ProcessWaitForEvent(pEventID, pParam)
 end
 
 function GroupCalendar._APIEventMethods:CheckCanSendInvite()
-	if not GroupCalendar.WoWCalendar:CalendarCanSendInvite() then
+	if not C_Calendar.CanSendInvite() then
 		return
 	end
 	
@@ -2008,10 +1929,10 @@ function GroupCalendar._APIEventMethods:CheckCanSendInvite()
 end
 
 function GroupCalendar._APIEventMethods:FindInviteByName(pName)
-	local vNumInvites = GroupCalendar.WoWCalendar:CalendarEventGetNumInvites()
+	local vNumInvites = C_Calendar.EventGetNumInvites()
 	
 	for vIndex = 1, vNumInvites do
-		local vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = GroupCalendar.WoWCalendar:CalendarEventGetInvite(vIndex)
+		local vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = C_Calendar.EventGetInvite(vIndex)
 		
 		if vName == pName then
 			return vIndex, vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine
@@ -2178,7 +2099,7 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 				end
 				
 				self:WaitForEvent("CALENDAR_UPDATE_INVITE_LIST")
-				GroupCalendar.WoWCalendar:CalendarEventRemoveInvite(vIndex)
+				C_Calendar.EventRemoveInvite(vIndex)
 				
 				if GroupCalendar.Debug.invites then
 					GroupCalendar:DebugMessage("CalendarEventRemoveInvite(%s): Done", vName)
@@ -2201,7 +2122,7 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 				end
 				
 				self:WaitForEvent("CALENDAR_UPDATE_INVITE_LIST")
-				GroupCalendar.WoWCalendar:CalendarEventInvite(vName)
+				C_Calendar.EventInvite(vName)
 			end
 			
 			if not self:ReadyToContinueInvites() then
@@ -2231,14 +2152,14 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 				end
 				
 				if vCurrentInfo.InviteStatus ~= vInfo.InviteStatus then
-					GroupCalendar.WoWCalendar:CalendarEventSetStatus(vIndex, vInfo.InviteStatus)
+					C_Calendar.EventSetStatus(vIndex, vInfo.InviteStatus)
 				end
 				
 				if vCurrentInfo.ModStatus ~= "CREATOR" and vCurrentInfo.ModStatus ~= vInfo.ModStatus then
 					if vInfo.ModStatus == "MODERATOR" then
-						GroupCalendar.WoWCalendar:CalendarEventSetModerator(vIndex)
+						C_Calendar.EventSetModerator(vIndex)
 					else
-						GroupCalendar.WoWCalendar:CalendarEventClearModerator(vIndex)
+						C_Calendar.EventClearModerator(vIndex)
 					end
 				end
 			end
@@ -2367,7 +2288,7 @@ function GroupCalendar._APIEventMethods:UninvitePlayer(pPlayerName)
 end
 
 function GroupCalendar._APIEventMethods:ContextSelectEvent()
-	GroupCalendar.WoWCalendar:CalendarContextSelectEvent(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+	C_Calendar.ContextSelectEvent(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 end
 
 function GroupCalendar._APIEventMethods:SetConfirmedStatus()
@@ -2393,9 +2314,9 @@ function GroupCalendar._APIEventMethods:SetConfirmedStatus()
 		self:ContextSelectEvent()
 		
 		if self:IsSignupEvent() then
-			GroupCalendar.WoWCalendar:CalendarContextEventSignUp()
+			C_Calendar.ContextEventSignUp()
 		else
-			GroupCalendar.WoWCalendar:CalendarContextInviteAvailable()
+			C_Calendar.ContextInviteAvailable()
 		end
 		
 		return
@@ -2405,9 +2326,9 @@ function GroupCalendar._APIEventMethods:SetConfirmedStatus()
 	-- the normal event response APIs
 	
 	if self:IsSignupEvent() then
-		GroupCalendar.WoWCalendar:CalendarEventSignUp()
+		C_Calendar.EventSignUp()
 	else
-		GroupCalendar.WoWCalendar:CalendarEventAvailable()
+		C_Calendar.EventAvailable()
 	end
 end
 
@@ -2432,7 +2353,7 @@ function GroupCalendar._APIEventMethods:SetTentativeStatus()
 	
 	if GroupCalendar.WoWCalendar.OpenedEvent ~= self then
 		self:ContextSelectEvent()
-		GroupCalendar.WoWCalendar:CalendarContextInviteTentative()
+		C_Calendar.ContextInviteTentative()
 		
 		return
 	end
@@ -2440,7 +2361,7 @@ function GroupCalendar._APIEventMethods:SetTentativeStatus()
 	-- The event is currently opened and it isn't the creator. Use
 	-- the normal event response APIs
 	
-	GroupCalendar.WoWCalendar:CalendarEventTentative()
+	C_Calendar.EventTentative()
 end
 
 function GroupCalendar._APIEventMethods:SetDeclinedStatus()
@@ -2470,9 +2391,9 @@ function GroupCalendar._APIEventMethods:SetDeclinedStatus()
 		self:ContextSelectEvent()
 		
 		if self:IsSignupEvent() then
-			GroupCalendar.WoWCalendar:CalendarContextInviteRemove()
+			C_Calendar.ContextInviteRemove()
 		else
-			GroupCalendar.WoWCalendar:CalendarContextInviteDecline()
+			C_Calendar.ContextInviteDecline()
 		end
 		
 		return
@@ -2482,9 +2403,9 @@ function GroupCalendar._APIEventMethods:SetDeclinedStatus()
 	-- the normal event response APIs
 	
 	if self:IsSignupEvent() then
-		GroupCalendar.WoWCalendar:CalendarRemoveEvent()
+		C_Calendar.RemoveEvent()
 	else
-		GroupCalendar.WoWCalendar:CalendarEventDecline()
+		C_Calendar.EventDecline()
 	end
 end
 
@@ -2580,7 +2501,7 @@ function GroupCalendar._APIEventMethods:CanDelete()
 	end
 	
 	if self.Index then
-		return GroupCalendar.WoWCalendar:CalendarContextEventCanEdit(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+		return C_Calendar.ContextEventCanEdit(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 	else
 		return true
 	end
@@ -2603,7 +2524,7 @@ function GroupCalendar._APIEventMethods:CanEdit()
 	end
 	
 	if self.Index then
-		return GroupCalendar.WoWCalendar:CalendarContextEventCanEdit(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+		return C_Calendar.ContextEventCanEdit(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
 	else
 		return true
 	end
@@ -2622,8 +2543,8 @@ function GroupCalendar._APIEventMethods:CanComplain()
 end
 
 function GroupCalendar._APIEventMethods:Complain()
-	GroupCalendar.WoWCalendar:CalendarContextSelectEvent(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
-	GroupCalendar.WoWCalendar:CalendarContextEventComplain()
+	C_Calendar.ContextSelectEvent(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+	C_Calendar.ContextEventComplain()
 end
 
 function GroupCalendar._APIEventMethods:CanRemove()
@@ -2634,8 +2555,8 @@ function GroupCalendar._APIEventMethods:CanRemove()
 end
 
 function GroupCalendar._APIEventMethods:Remove()
-	GroupCalendar.WoWCalendar:CalendarContextSelectEvent(GroupCalendar.WoWCalendar:CalendarGetMonthOffset(self.Month, self.Year), self.Day, self.Index)
-	GroupCalendar.WoWCalendar:CalendarContextInviteRemove()
+	C_Calendar.ContextSelectEvent(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+	C_Calendar.ContextInviteRemove()
 end
 
 function GroupCalendar._APIEventMethods:IsGuildWide()
@@ -2793,22 +2714,6 @@ function GroupCalendar._WoWCalendar:Construct()
 	self.TitleTag = nil
 	self.DescriptionTag = nil
 	
-	-- Hook the original APIs to extend the functionality with tag support
-	
-	for _, vName in ipairs(GroupCalendar.cBlizzardCalendarFunctionNames) do
-		if not self[vName] then
-			self[vName] = function (pWoWCalendar, ...) return _G[vName](...) end
-		end
-	end
-	
---	self.WoWAPIOrigs = {}
-	
---	for vName, vFunction in pairs(self.WoWAPIHooks) do
---		hooksecurefunc(vName, function (...) vFunction(self, ...) end
---		self.WoWAPIOrigs[vName] = _G[vName]
---		_G[vName] = function (...) return vFunction(self, ...) end
---	end
-	
 	GroupCalendar.EventLib:RegisterEvent("CALENDAR_NEW_EVENT", self.NewEventCreated, self)
 end
 
@@ -2860,11 +2765,11 @@ function GroupCalendar._WoWCalendar:GetNextExtendedInfo()
 	
 	GroupCalendar.SchedulerLib:ScheduleUniqueTask(2, self.GetNextExtendedInfo, self)
 	
-	-- GroupCalendar.WoWCalendar:CalendarCloseEvent()
+	-- C_Calendar.CloseEvent()
 	
-	local vMonthOffset = GroupCalendar.WoWCalendar:CalendarGetMonthOffset(vEvent.Month, vEvent.Year)
+	local vMonthOffset = GroupCalendar:GetMonthOffset(vEvent.Month, vEvent.Year)
 	--GroupCalendar:DebugMessage("GetNextExtendedInfo: CalendarOpenEvent(%s, %s, %s)", tostring(vMonthOffset), tostring(vEvent.Day), tostring(vEvent.Index))
-	GroupCalendar.WoWCalendar:CalendarOpenEvent(vMonthOffset, vEvent.Day, vEvent.Index)
+	C_Calendar.OpenEvent(vMonthOffset, vEvent.Day, vEvent.Index)
 end
 
 function GroupCalendar._WoWCalendar:UpdateNextQueuedEvent()
@@ -2881,7 +2786,7 @@ function GroupCalendar._WoWCalendar:UpdateNextQueuedEvent()
 		GroupCalendar.EventLib:DispatchEvent("GC5_EVENT_CHANGED", vEvent)
 	end
 	
-	GroupCalendar.WoWCalendar:CalendarCloseEvent()
+	C_Calendar.CloseEvent()
 	
 	self:GetNextExtendedInfo()
 end
@@ -3036,7 +2941,7 @@ function GroupCalendar._WoWCalendar:CalendarEventSetDate(pMonth, pDay, pYear, ..
 end
 
 function GroupCalendar._WoWCalendar:CalendarCloseEvent(...)
-	local vResult = CalendarCloseEvent(...)
+	local vResult = C_Calendar.CloseEvent(...)
 	
 	if self.OpenedEvent and not self.OpenedEvent.ChangingMode then
 		self.OpenedEvent:EventClosed()
@@ -3802,69 +3707,24 @@ function GroupCalendar:ShowFunctionParameters(pFunctionName, pResult, ...)
 	GroupCalendar:DebugMessage("%s(%s) returned %s", pFunctionName, vFunctionParams or "", vResults or "nil")
 end
 
-function GroupCalendar:MonitorCalendarAPIRecursion()
-	if self.PatchedWoWCalendarAPIRecursion then
+function GroupCalendar:MonitorCalendarAPI()
+	if self.PatchedWoWCalendarAPI then
 		return
 	end
-	
-	self.InWoWAPI = {}
-	
-	for _, vFunctionName in ipairs(self.cBlizzardCalendarFunctionNames) do
-		local vOrigFunction = _G[vFunctionName]
-		
-		if vOrigFunction then
-			_G[vFunctionName] = function (...)
-				if self.InWoWAPI[vFunctionName] then
-					GroupCalendar:DebugMessage("Recursive call to %s", vFunctionName)
-					GroupCalendar:DebugStack()
-					return
-				end
-				
-				self.InWoWAPI[vFunctionName] = true
-				
-				local vResult = {vOrigFunction(...)}
-				
-				self.InWoWAPI[vFunctionName] = nil
-				
-				return unpack(vResult)
-			end
-		end
-	end
-	
-	self.PatchedWoWCalendarAPIRecursion = true
-end
 
-function GroupCalendar:MonitorCalendarAPI()
-	if not self.PatchedWoWCalendarAPI then
-		self.InWoWAPI = {}
-		
-		for _, vFunctionName in ipairs(self.cBlizzardCalendarFunctionNames) do
-			local vOrigFunction = _G[vFunctionName]
-			
-			if vOrigFunction then
-				if false
-				and (vFunctionName == "CalendarCloseEvent"
-				or vFunctionName == "CalendarNewEvent") then
-					_G[vFunctionName] = function (...)
-						local vResult = {vOrigFunction(...)}
-						
-						GroupCalendar:ShowFunctionParameters(vFunctionName, vResult, ...)
-						GroupCalendar:DebugStack()
-						
-						return unpack(vResult)
-					end
-				else
-					_G[vFunctionName] = function (...)
-						local vResult = {vOrigFunction(...)}
-						
-						GroupCalendar:ShowFunctionParameters(vFunctionName, vResult, ...)
-						
-						return unpack(vResult)
-					end
-				end
+	self.InWoWAPI = {}
+
+	for name, body in pairs(C_Calendar) do
+		if typeof(body) == "function" then
+			C_Calendar[name] = function (...)
+				local result = {body(...)}
+
+				GroupCalendar:ShowFunctionParameters(name, result, ...)
+
+				return unpack(result)
 			end
 		end
-		
-		self.PatchedWoWCalendarAPI = true
 	end
+
+	self.PatchedWoWCalendarAPI = true
 end
