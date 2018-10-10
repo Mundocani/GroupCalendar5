@@ -34,7 +34,7 @@ function GroupCalendar.UI._SettingsView:OnShow()
 		self.TwentyFourHourTime = GroupCalendar:New(GroupCalendar.UIElementsLib._CheckButton, self, GroupCalendar.cTwentyFourHourTime)
 		self.TwentyFourHourTime:SetPoint("TOPLEFT", self.StartDayMenu, "BOTTOMLEFT", 0, -15)
 		self.TwentyFourHourTime:SetScript("OnClick", function (pCheckButton)
-			GroupCalendar.Data.TwentyFourHourTime = pCheckButton:GetChecked() ~= nil
+			GroupCalendar.Data.TwentyFourHourTime = pCheckButton:GetChecked()
 			SetCVar("timeMgrUseMilitaryTime", GroupCalendar.Data.TwentyFourHourTime and 1 or 0)
 			self.TwentyFourHourTime:SetChecked(GetCVarBool("timeMgrUseMilitaryTime"))
 		end)
