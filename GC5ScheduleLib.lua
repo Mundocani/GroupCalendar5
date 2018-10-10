@@ -2125,6 +2125,7 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 				end
 				
 				if currentInfo.InviteStatus ~= info.InviteStatus then
+					GroupCalendar:DebugMessage("EventSetInviteStatus(%s, %s)", tostring(index), tostring(info.InviteStatus))
 					GroupCalendar.WoWCalendar:EventSetInviteStatus(index, info.InviteStatus)
 				end
 				

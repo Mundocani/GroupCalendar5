@@ -878,44 +878,107 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 			pMenu:AddCategoryTitle(STATUS)
 			
 			-- Invited status can't be set, so only display it if that's their current status
-			
 			if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
-				pMenu:AddItemWithValue(CALENDAR_STATUS_INVITED, "STATUS_INVITED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED, not vCanSendInvite)
+				pMenu:AddToggle(CALENDAR_STATUS_INVITED, function () return true end, nil, not vCanSendInvite)
 			end
 			
 			if vIsGuildEvent then
 				-- Accepted status can't be set, so only display it if that's their current status
-				
 				if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED then
-					pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
+					pMenu:AddToggle(CALENDAR_STATUS_ACCEPTED, true, nil, not vCanSendInvite)
 				end
 				
 				-- Signed up status can't be set, so only display it if that's their current status
-				
 				if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP then
-					pMenu:AddItemWithValue(CALENDAR_STATUS_SIGNEDUP, "STATUS_SIGNEDUP", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP, not vCanSendInvite)
+					pMenu:AddToggle(CALENDAR_STATUS_SIGNEDUP, true, nil, not vCanSendInvite)
 				end
 				
-				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
+				pMenu:AddToggle(
+					CALENDAR_STATUS_TENTATIVE,
+					function ()
+						return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+					end,
+					function ()
+						self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_TENTATIVE)
+					end,
+					not vCanSendInvite)
 				
 				-- Declined status can't be set, so only display it if that's their current status
-				
 				if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED then
-					pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
+					pMenu:AddToggle(CALENDAR_STATUS_DECLINED, true, nil, not vCanSendInvite)
 				end
 			else
-				pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
-				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
-				pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
+				pMenu:AddToggle(
+					CALENDAR_STATUS_ACCEPTED,
+					function ()
+						return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+					end,
+					function ()
+						self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_ACCEPTED)
+					end,
+					not vCanSendInvite)
+				pMenu:AddToggle(
+					CALENDAR_STATUS_TENTATIVE,
+					function ()
+						return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+					end,
+					function ()
+						self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_TENTATIVE)
+					end,
+					not vCanSendInvite)
+				pMenu:AddToggle(
+					CALENDAR_STATUS_DECLINED,
+					function ()
+						return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED
+					end,
+					function ()
+						self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_DECLINED)
+					end,
+					not vCanSendInvite)
 			end
 			
-			pMenu:AddItemWithValue(CALENDAR_STATUS_CONFIRMED, "STATUS_CONFIRMED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED, not vCanSendInvite)
-			pMenu:AddItemWithValue(CALENDAR_STATUS_STANDBY, "STATUS_STANDBY", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY, not vCanSendInvite)
-			pMenu:AddItemWithValue(CALENDAR_STATUS_OUT, "STATUS_OUT", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_OUT, not vCanSendInvite)
+			pMenu:AddToggle(
+				CALENDAR_STATUS_CONFIRMED,
+				function ()
+					return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+				end,
+				function ()
+					self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_CONFIRMED)
+				end,
+				not vCanSendInvite)
+			pMenu:AddToggle(
+				CALENDAR_STATUS_STANDBY,
+				function ()
+					return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY
+				end,
+				function ()
+					self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_STANDBY)
+				end,
+				not vCanSendInvite)
+			pMenu:AddToggle(
+				CALENDAR_STATUS_OUT,
+				function ()
+					return attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_OUT
+				end,
+				function ()
+					self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_OUT)
+				end,
+				not vCanSendInvite)
 		end
 		
 		pMenu:AddDivider()
-		pMenu:AddItemWithValue(CALENDAR_INVITELIST_SETMODERATOR, "MODERATOR", nil, attendanceInfo and (attendanceInfo.ModStatus == "MODERATOR" or attendanceInfo.ModStatus == "CREATOR"), (attendanceInfo and attendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
+
+		pMenu:AddToggle(
+			CALENDAR_INVITELIST_SETMODERATOR,
+			function ()
+				return attendanceInfo and (attendanceInfo.ModStatus == "MODERATOR" or attendanceInfo.ModStatus == "CREATOR")
+			end,
+			function ()
+				local attendanceInfo = self.Event:GetAttendance()[memberInfo.Name]
+				self.Event:SetModerator(memberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
+				self:Refresh()
+			end,
+			(attendanceInfo and attendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
 		
 		local inRaid = playerInfo ~= nil
 
@@ -963,11 +1026,27 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 		local vClassID = (attendanceInfo and attendanceInfo.ClassID) or playerInfo.ClassID
 		local roleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(memberInfo.Name, vClassID)
 		
-		pMenu:AddCategoryTitle("Role")
-		pMenu:AddItemWithValue(GroupCalendar.cHRole, "ROLE_H", nil, roleCode == "H")
-		pMenu:AddItemWithValue(GroupCalendar.cTRole, "ROLE_T", nil, roleCode == "T")
-		pMenu:AddItemWithValue(GroupCalendar.cRRole, "ROLE_R", nil, roleCode == "R")
-		pMenu:AddItemWithValue(GroupCalendar.cMRole, "ROLE_M", nil, roleCode == "M")
+		pMenu:AddSingleChoiceGroup(
+			"Role", {
+				{GroupCalendar.cHRole, "H"},
+				{GroupCalendar.cTRole, "T"},
+				{GroupCalendar.cRRole, "R"},
+				{GroupCalendar.cMRole, "M"}
+			},
+			-- get
+			function ()
+				local roleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(memberInfo.Name, vClassID)
+				return roleCode
+			end,
+			-- set
+			function (roleCode)
+				if self.Event:GetAttendance()[memberInfo.Name] then
+					self.Event:SetInviteRoleCode(memberInfo.Name, roleCode)
+				end
+				GroupCalendar:SetPlayerDefaultRoleCode(memberInfo.Name, roleCode)
+				self:Rebuild()
+			end
+		)
 	end
 end
 
@@ -1125,51 +1204,6 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 			self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_STANDBY)
 		elseif pPartID == "INVITE" then
 			GroupCalendar.RaidInvites:InvitePlayer(memberInfo.Name)
-		end
-	elseif pButton == "MENU" then
-		if pPartID:sub(1, 7) == "PLAYER_" then
-			local vOp = pPartID:sub(8)
-			
-			if vOp == "EDIT" then
-			elseif vOp == "REMOVE" then
-				self.Event:UninvitePlayer(memberInfo.Name)
-			end
-			
-		elseif pPartID:sub(1, 7) == "STATUS_" then
-			local vStatus = pPartID:sub(8)
-			
-			self.Event:SetInviteStatus(memberInfo.Name, _G["CALENDAR_INVITESTATUS_"..vStatus])
-		
-		elseif pPartID:sub(1, 5) == "ROLE_" then
-			local roleCode = pPartID:sub(6)
-			
-			if self.Event:GetAttendance()[memberInfo.Name] then
-				self.Event:SetInviteRoleCode(memberInfo.Name, roleCode)
-			end
-			
-			GroupCalendar:SetPlayerDefaultRoleCode(memberInfo.Name, roleCode)
-			
-			self:Rebuild()
-			
-		elseif pPartID:sub(1, 6) == "GROUP_" then
-			local vOp = pPartID:sub(8)
-			
-			if vOp == "INVITE" then
-				GroupCalendar.RaidInvites:InvitePlayer(memberInfo.Name)
-			elseif vOp == "REMOVE" then
-				UninviteUnit(memberInfo.Name)
-			elseif vOp == "LEADER" then
-				PromoteToLeader(memberInfo.Name)
-			elseif vOp == "PROMOTE" then
-				PromoteToAssistant(memberInfo.Name)
-			elseif vOp == "DEMOTE" then
-				DemoteAssistant(memberInfo.Name)
-			end
-		elseif pPartID == "MODERATOR" then
-			local attendanceInfo = self.Event:GetAttendance()[memberInfo.Name]
-			
-			self.Event:SetModerator(memberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
-			self:Refresh()
 		end
 	end
 end
