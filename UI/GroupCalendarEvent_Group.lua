@@ -304,15 +304,15 @@ function GroupCalendar.UI._EventGroup:SetExpandAll(pExpandAll)
 end
 
 function GroupCalendar.UI._EventGroup:AllSelected()
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
-	if not vAttendance then
+	if not attendance then
 		return false
 	end
 	
-	for vName, vPlayerInfo in pairs(vAttendance) do
-		if self:IsSelectAllCandidate(vPlayerInfo)
-		and not self.SelectedPlayers[vName] then
+	for name, playerInfo in pairs(attendance) do
+		if self:IsSelectAllCandidate(playerInfo)
+		and not self.SelectedPlayers[name] then
 			return false
 		end
 	end
@@ -325,30 +325,30 @@ function GroupCalendar.UI._EventGroup:AllSelected()
 end
 
 function GroupCalendar.UI._EventGroup:SelectAll()
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
 	for vKey, _ in pairs(self.SelectedPlayers) do
 		self.SelectedPlayers[vKey] = nil
 	end
 	
-	for vName, vPlayerInfo in pairs(vAttendance) do
-		if self:IsSelectAllCandidate(vPlayerInfo) then
-			self.SelectedPlayers[vName] = true
+	for name, playerInfo in pairs(attendance) do
+		if self:IsSelectAllCandidate(playerInfo) then
+			self.SelectedPlayers[name] = true
 		end
 	end
 	
 	self:Refresh()
 end
 
-function GroupCalendar.UI._EventGroup:IsSelectAllCandidate(pPlayerInfo)
-	return (pPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-	     or pPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-	     or pPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
-	     or pPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY
-	     or pPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED)
+function GroupCalendar.UI._EventGroup:IsSelectAllCandidate(playerInfo)
+	return (playerInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+	     or playerInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+	     or playerInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
+	     or playerInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY
+	     or playerInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED)
 	and (not self.Event.Group
-	  or not self.Event.Group[pPlayerInfo.Name]
-	  or self.Event.Group[pPlayerInfo.Name].LeftGroup)
+	  or not self.Event.Group[playerInfo.Name]
+	  or self.Event.Group[playerInfo.Name].LeftGroup)
 end
 
 function GroupCalendar.UI._EventGroup:ClearSelection()
@@ -361,21 +361,21 @@ end
 
 function GroupCalendar.UI._EventGroup:AutoSelectFromLimits(pLimits)
 	local vAvailableSlots = GroupCalendar:New(GroupCalendar._AvailableSlots, pLimits, "ROLE")
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
 	vAvailableSlots:AddEventGroup(self.Event)
 	
 	self:ClearSelection()
 	
-	for vName, vPlayerInfo in pairs(vAttendance) do
-		if (vPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY
-		or vPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-		or vPlayerInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE)
+	for name, playerInfo in pairs(attendance) do
+		if (playerInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY
+		or playerInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+		or playerInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE)
 		and (not self.Event.Group
-		 or not self.Event.Group[vName]
-		 or self.Event.Group[vName].LeftGroup) then
-			if vAvailableSlots:AddPlayer(vPlayerInfo) then
-				self.SelectedPlayers[vName] = true
+		 or not self.Event.Group[name]
+		 or self.Event.Group[name].LeftGroup) then
+			if vAvailableSlots:AddPlayer(playerInfo) then
+				self.SelectedPlayers[name] = true
 			end
 		end
 	end
@@ -384,14 +384,14 @@ function GroupCalendar.UI._EventGroup:AutoSelectFromLimits(pLimits)
 end
 
 function GroupCalendar.UI._EventGroup:InviteSelectedPlayers()
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
 	for vPlayerName, _ in pairs(self.SelectedPlayers) do
-		local vPlayerInfo = vAttendance and vAttendance[vPlayerName]
-		local vPlayerGroupInfo = self.Event.Group and self.Event.Group[vPlayerName]
+		local playerInfo = attendance and attendance[vPlayerName]
+		local playerGroupInfo = self.Event.Group and self.Event.Group[vPlayerName]
 		
-		if (vPlayerInfo or vPlayerGroupInfo)
-		and (not vPlayerGroupInfo or vPlayerGroupInfo.LeftGroup) then
+		if (playerInfo or playerGroupInfo)
+		and (not playerGroupInfo or playerGroupInfo.LeftGroup) then
 			GroupCalendar.RaidInvites:InvitePlayer(vPlayerName)
 		end
 	end
@@ -409,9 +409,9 @@ function GroupCalendar.UI._EventGroup:InviteNotification(pMessageID, ...)
 	elseif pMessageID == "PLAYER" then
 		local vPlayerName = select(1, ...)
 		local vStatus = select(2, ...)
-		local vPlayerInfo = self.Event:GetAttendance()[vPlayerName]
+		local playerInfo = self.Event:GetAttendance()[vPlayerName]
 		
-		if not vPlayerInfo then
+		if not playerInfo then
 			return
 		end
 		
@@ -420,7 +420,7 @@ function GroupCalendar.UI._EventGroup:InviteNotification(pMessageID, ...)
 			self.SelectedPlayers[vPlayerName] = nil
 		end
 		
-		vPlayerInfo.RaidInviteStatus = vStatus
+		playerInfo.RaidInviteStatus = vStatus
 		self:Rebuild()
 	end
 end
@@ -520,10 +520,10 @@ function GroupCalendar.UI._EventGroup:RefreshMetaTable()
 	
 	GroupCalendar._GroupPlayerMethods.EventGroup = self
 	
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
-	if vAttendance then
-		for _, vInfo in pairs(vAttendance) do
+	if attendance then
+		for _, vInfo in pairs(attendance) do
 			setmetatable(vInfo, GroupCalendar.GroupPlayerMetaTable)
 		end
 	end
@@ -548,18 +548,18 @@ function GroupCalendar.UI._EventGroup:Rebuild()
 	
 	self:BeginRebuildGroups()
 	
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
-	if vAttendance then
-		for _, vInfo in pairs(vAttendance) do
+	if attendance then
+		for _, vInfo in pairs(attendance) do
 			self:AddGroupPlayer(vInfo)
 		end
 	end
 	
 	if GroupCalendar.RunningEvent == self.Event then
-		for vName, vPlayerInfo in pairs(self.Event.Group) do
-			if not vAttendance or not vAttendance[vName] then
-				self:AddGroupPlayer(vPlayerInfo)
+		for name, playerInfo in pairs(self.Event.Group) do
+			if not attendance or not attendance[name] then
+				self:AddGroupPlayer(playerInfo)
 			end
 		end
 	end
@@ -573,42 +573,42 @@ function GroupCalendar.UI._EventGroup:BeginRebuildGroups()
 	end
 end
 
-function GroupCalendar.UI._EventGroup:AddGroupPlayer(pPlayerInfo)
+function GroupCalendar.UI._EventGroup:AddGroupPlayer(playerInfo)
 	-- Figure out which group to put it in
 	
-	local vInviteStatus = pPlayerInfo:GetInviteStatus()
+	local inviteStatus = playerInfo:GetInviteStatus()
 	local vGroup
 	
 	-- Players who left the group always go into LeftGroup
 	
-	if vInviteStatus == "LEFT" then
+	if inviteStatus == "LEFT" then
 		vGroup = self.LeftGroup
-	elseif vInviteStatus == "STANDBY" then
+	elseif inviteStatus == "STANDBY" then
 		vGroup = self.StandbyGroup
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_INVITED then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_INVITED then
 		vGroup = self.InvitedGroup
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-	or vInviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+	or inviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP then
 		vGroup = self.AcceptedGroup
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_TENTATIVE then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_TENTATIVE then
 		vGroup = self.TentativeGroup
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_STANDBY then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_STANDBY then
 		vGroup = self.StandbyGroup
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_DECLINED then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_DECLINED then
 		vGroup = self.DeclinedGroup
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_OUT then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_OUT then
 		vGroup = self.OutGroup
 	elseif self.ClassGroups then
-		vGroup = self.ClassGroups[pPlayerInfo.ClassID] or self.UnknownGroup
+		vGroup = self.ClassGroups[playerInfo.ClassID] or self.UnknownGroup
 	elseif self.RoleGroups then
-		local vRoleCode = (pPlayerInfo and pPlayerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(pPlayerInfo.Name, pPlayerInfo.ClassID)
+		local roleCode = (playerInfo and playerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(playerInfo.Name, playerInfo.ClassID)
 
-		vGroup = self.RoleGroups[vRoleCode] or self.UnknownGroup
+		vGroup = self.RoleGroups[roleCode] or self.UnknownGroup
 	else
 		vGroup = self.ConfirmedGroup
 	end
 	
-	vGroup:AddPlayerInfo(pPlayerInfo)
+	vGroup:AddPlayerInfo(playerInfo)
 end
 
 function GroupCalendar.UI._EventGroup:EndRebuildGroups()
@@ -706,57 +706,57 @@ function GroupCalendar.UI._EventGroup:Refresh()
 	local vNumSelected = 0
 	
 	if GroupCalendar.RunningEvent == self.Event then
-		local vAttendance = self.Event:GetAttendance()
+		local attendance = self.Event:GetAttendance()
 		
 		-- When the event is running the confirmed count is players
 		-- who are in the group or invited to the group or selected
 		-- and the standby count is all other players who are eligible
 		-- to be invited
 		
-		if vAttendance then
-			for vName, vPlayerInfo in pairs(vAttendance) do
-				local vInviteStatus = vPlayerInfo:GetInviteStatus()
-				local vRoleCode = (vPlayerInfo and vPlayerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vName, vPlayerInfo.ClassID)
+		if attendance then
+			for name, playerInfo in pairs(attendance) do
+				local inviteStatus = playerInfo:GetInviteStatus()
+				local roleCode = (playerInfo and playerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(name, playerInfo.ClassID)
 				
-				if self.SelectedPlayers[vName]
-				or vInviteStatus == "INVITED"
-				or vInviteStatus == "JOINED" then
-					if self.SelectedPlayers[vName] then
+				if self.SelectedPlayers[name]
+				or inviteStatus == "INVITED"
+				or inviteStatus == "JOINED" then
+					if self.SelectedPlayers[name] then
 						vNumSelected = vNumSelected + 1
 					end
 					
-					if vRoleCode then
-						vTotals[vRoleCode].Confirmed = vTotals[vRoleCode].Confirmed + 1
+					if roleCode then
+						vTotals[roleCode].Confirmed = vTotals[roleCode].Confirmed + 1
 					end
-				elseif vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-				or vInviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-				or vInviteStatus == CALENDAR_INVITESTATUS_STANDBY
-				or vInviteStatus == "OFFLINE" then
-					if vRoleCode then
-						vTotals[vRoleCode].Standby = vTotals[vRoleCode].Standby + 1
+				elseif inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+				or inviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+				or inviteStatus == CALENDAR_INVITESTATUS_STANDBY
+				or inviteStatus == "OFFLINE" then
+					if roleCode then
+						vTotals[roleCode].Standby = vTotals[roleCode].Standby + 1
 					end
 				end
 			end
 		end
 		
-		for vName, vPlayerInfo in pairs(self.Event.Group) do
-			if not vAttendance or not vAttendance[vName] then -- If they're in the main attendance list they've already been processed
-				local vInviteStatus = vPlayerInfo:GetInviteStatus()
-				local vRoleCode = (vPlayerInfo and vPlayerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vName, vPlayerInfo.ClassID)
+		for name, playerInfo in pairs(self.Event.Group) do
+			if not attendance or not attendance[name] then -- If they're in the main attendance list they've already been processed
+				local inviteStatus = playerInfo:GetInviteStatus()
+				local roleCode = (playerInfo and playerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(name, playerInfo.ClassID)
 				
-				if self.SelectedPlayers[vName]
-				or vInviteStatus == "INVITED"
-				or vInviteStatus == "JOINED" then
-					if self.SelectedPlayers[vName] then
+				if self.SelectedPlayers[name]
+				or inviteStatus == "INVITED"
+				or inviteStatus == "JOINED" then
+					if self.SelectedPlayers[name] then
 						vNumSelected = vNumSelected + 1
 					end
 					
-					if vRoleCode then
-						vTotals[vRoleCode].Confirmed = vTotals[vRoleCode].Confirmed + 1
+					if roleCode then
+						vTotals[roleCode].Confirmed = vTotals[roleCode].Confirmed + 1
 					end
-				elseif vInviteStatus == "OFFLINE" then
-					if vRoleCode then
-						vTotals[vRoleCode].Standby = vTotals[vRoleCode].Standby + 1
+				elseif inviteStatus == "OFFLINE" then
+					if roleCode then
+						vTotals[roleCode].Standby = vTotals[roleCode].Standby + 1
 					end
 				end
 			end
@@ -766,20 +766,20 @@ function GroupCalendar.UI._EventGroup:Refresh()
 		-- confirmed for the event and the standby count is only players are are
 		-- on standby for the event
 		
-		local vAttendance = self.Event:GetAttendance()
+		local attendance = self.Event:GetAttendance()
 		
-		if vAttendance then
-			for vName, vPlayerInfo in pairs(vAttendance) do
-				local vRoleCode = (vPlayerInfo and vPlayerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vName, vPlayerInfo.ClassID)
+		if attendance then
+			for name, playerInfo in pairs(attendance) do
+				local roleCode = (playerInfo and playerInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(name, playerInfo.ClassID)
 				
-				if vRoleCode then
-					local vInviteStatus = vPlayerInfo:GetInviteStatus()
+				if roleCode then
+					local inviteStatus = playerInfo:GetInviteStatus()
 					
-					if vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED then
-						vTotals[vRoleCode].Confirmed = vTotals[vRoleCode].Confirmed + 1
-					elseif vInviteStatus == CALENDAR_INVITESTATUS_STANDBY
-					or vInviteStatus == CALENDAR_INVITESTATUS_TENTATIVE then
-						vTotals[vRoleCode].Standby = vTotals[vRoleCode].Standby + 1
+					if inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED then
+						vTotals[roleCode].Confirmed = vTotals[roleCode].Confirmed + 1
+					elseif inviteStatus == CALENDAR_INVITESTATUS_STANDBY
+					or inviteStatus == CALENDAR_INVITESTATUS_TENTATIVE then
+						vTotals[roleCode].Standby = vTotals[roleCode].Standby + 1
 					end
 				end
 			end
@@ -788,12 +788,12 @@ function GroupCalendar.UI._EventGroup:Refresh()
 	
 	local vTotalConfirmed, vTotalStandby = 0, 0
 	
-	for vRoleCode, vRoleTotals in pairs(vTotals) do
-		if self.TotalValues[vRoleCode] then
+	for roleCode, vRoleTotals in pairs(vTotals) do
+		if self.TotalValues[roleCode] then
 			if vRoleTotals.Standby > 0 then
-				self.TotalValues[vRoleCode]:SetText(string.format("%d (+%d)", vRoleTotals.Confirmed, vRoleTotals.Standby))
+				self.TotalValues[roleCode]:SetText(string.format("%d (+%d)", vRoleTotals.Confirmed, vRoleTotals.Standby))
 			else
-				self.TotalValues[vRoleCode]:SetText(vRoleTotals.Confirmed)
+				self.TotalValues[roleCode]:SetText(vRoleTotals.Confirmed)
 			end
 		end
 		
@@ -855,77 +855,77 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 	local vMemberGroup, vMemberInfo = pItem.Group:GetIndexedMember(pItem.MemberIndex)
 	
 	if not pMenuID then
-		local vAttendance = self.Event:GetAttendance()
-		local vAttendanceInfo = vAttendance and vAttendance[vMemberInfo.Name]
-		local vPlayerInfo = GroupCalendar.RaidLib.PlayersByName[vMemberInfo.Name]
+		local attendance = self.Event:GetAttendance()
+		local attendanceInfo = attendance and attendance[vMemberInfo.Name]
+		local playerInfo = GroupCalendar.RaidLib.PlayersByName[vMemberInfo.Name]
 		local vSelfPlayerInfo = GroupCalendar.RaidLib.PlayersByName[GroupCalendar.PlayerName]
 		local vCanSendInvite = self.Event:CanEdit()
 		local vIsGuildEvent = self.Event:IsGuildWide()
 		local vIsCreator = vMemberInfo.Name == self.Event.Creator
 		
-		pMenu:AddCategoryItem(vMemberInfo.Name)
+		pMenu:AddCategoryTitle(vMemberInfo.Name)
 		pMenu:AddItemWithValue(REMOVE, "PLAYER_REMOVE", nil, nil, not vCanSendInvite)
 		
-		if vAttendanceInfo then
-			pMenu:AddCategoryItem(STATUS)
+		if attendanceInfo then
+			pMenu:AddCategoryTitle(STATUS)
 			
 			-- Invited status can't be set, so only display it if that's their current status
 			
-			if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
-				pMenu:AddItemWithValue(CALENDAR_STATUS_INVITED, "STATUS_INVITED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED, not vCanSendInvite)
+			if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
+				pMenu:AddItemWithValue(CALENDAR_STATUS_INVITED, "STATUS_INVITED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED, not vCanSendInvite)
 			end
 			
 			if vIsGuildEvent then
 				-- Accepted status can't be set, so only display it if that's their current status
 				
-				if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED then
-					pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
+				if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED then
+					pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
 				end
 				
 				-- Signed up status can't be set, so only display it if that's their current status
 				
-				if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP then
-					pMenu:AddItemWithValue(CALENDAR_STATUS_SIGNEDUP, "STATUS_SIGNEDUP", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP, not vCanSendInvite)
+				if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP then
+					pMenu:AddItemWithValue(CALENDAR_STATUS_SIGNEDUP, "STATUS_SIGNEDUP", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP, not vCanSendInvite)
 				end
 				
-				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
 				
 				-- Declined status can't be set, so only display it if that's their current status
 				
-				if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED then
-					pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
+				if attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED then
+					pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
 				end
 			else
-				pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
-				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
-				pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
 			end
 			
-			pMenu:AddItemWithValue(CALENDAR_STATUS_CONFIRMED, "STATUS_CONFIRMED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED, not vCanSendInvite)
-			pMenu:AddItemWithValue(CALENDAR_STATUS_STANDBY, "STATUS_STANDBY", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY, not vCanSendInvite)
-			pMenu:AddItemWithValue(CALENDAR_STATUS_OUT, "STATUS_OUT", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_OUT, not vCanSendInvite)
+			pMenu:AddItemWithValue(CALENDAR_STATUS_CONFIRMED, "STATUS_CONFIRMED", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED, not vCanSendInvite)
+			pMenu:AddItemWithValue(CALENDAR_STATUS_STANDBY, "STATUS_STANDBY", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY, not vCanSendInvite)
+			pMenu:AddItemWithValue(CALENDAR_STATUS_OUT, "STATUS_OUT", nil, attendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_OUT, not vCanSendInvite)
 		end
 		
 		pMenu:AddDivider()
-		pMenu:AddItemWithValue(CALENDAR_INVITELIST_SETMODERATOR, "MODERATOR", nil, vAttendanceInfo and (vAttendanceInfo.ModStatus == "MODERATOR" or vAttendanceInfo.ModStatus == "CREATOR"), (vAttendanceInfo and vAttendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
+		pMenu:AddItemWithValue(CALENDAR_INVITELIST_SETMODERATOR, "MODERATOR", nil, attendanceInfo and (attendanceInfo.ModStatus == "MODERATOR" or attendanceInfo.ModStatus == "CREATOR"), (attendanceInfo and attendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
 		
-		local vInRaid = vPlayerInfo ~= nil
+		local vInRaid = playerInfo ~= nil
 		
-		pMenu:AddCategoryItem(VOICE_CHAT_PARTY_RAID)
+		pMenu:AddCategoryTitle(VOICE_CHAT_PARTY_RAID)
 		pMenu:AddItemWithValue(CALENDAR_INVITELIST_INVITETORAID, "GROUP_INVITE", nil, nil, vInRaid or vSelfPlayerInfo.Rank == 0)
-		pMenu:AddItemWithValue(REMOVE, "GROUP_REMOVE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= vPlayerInfo.Rank)
-		pMenu:AddItemWithValue(PARTY_PROMOTE, "GROUP_LEADER", nil, nil, not vInRaid or vPlayerInfo.Rank == 2 or vSelfPlayerInfo.Rank ~= 2)
-		pMenu:AddItemWithValue(SET_RAID_ASSISTANT, "GROUP_PROMOTE", nil, nil, not vInRaid or vPlayerInfo.Rank > 0 or vSelfPlayerInfo.Rank ~= 2)
-		pMenu:AddItemWithValue(DEMOTE, "GROUP_DEMOTE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= vPlayerInfo.Rank or vPlayerInfo.Rank == 0)
+		pMenu:AddItemWithValue(REMOVE, "GROUP_REMOVE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= playerInfo.Rank)
+		pMenu:AddItemWithValue(PARTY_PROMOTE, "GROUP_LEADER", nil, nil, not vInRaid or playerInfo.Rank == 2 or vSelfPlayerInfo.Rank ~= 2)
+		pMenu:AddItemWithValue(SET_RAID_ASSISTANT, "GROUP_PROMOTE", nil, nil, not vInRaid or playerInfo.Rank > 0 or vSelfPlayerInfo.Rank ~= 2)
+		pMenu:AddItemWithValue(DEMOTE, "GROUP_DEMOTE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= playerInfo.Rank or playerInfo.Rank == 0)
 		
-		local vClassID = (vAttendanceInfo and vAttendanceInfo.ClassID) or vPlayerInfo.ClassID
-		local vRoleCode = (vAttendanceInfo and vAttendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vMemberInfo.Name, vClassID)
+		local vClassID = (attendanceInfo and attendanceInfo.ClassID) or playerInfo.ClassID
+		local roleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vMemberInfo.Name, vClassID)
 		
-		pMenu:AddCategoryItem("Role")
-		pMenu:AddItemWithValue(GroupCalendar.cHRole, "ROLE_H", nil, vRoleCode == "H")
-		pMenu:AddItemWithValue(GroupCalendar.cTRole, "ROLE_T", nil, vRoleCode == "T")
-		pMenu:AddItemWithValue(GroupCalendar.cRRole, "ROLE_R", nil, vRoleCode == "R")
-		pMenu:AddItemWithValue(GroupCalendar.cMRole, "ROLE_M", nil, vRoleCode == "M")
+		pMenu:AddCategoryTitle("Role")
+		pMenu:AddItemWithValue(GroupCalendar.cHRole, "ROLE_H", nil, roleCode == "H")
+		pMenu:AddItemWithValue(GroupCalendar.cTRole, "ROLE_T", nil, roleCode == "T")
+		pMenu:AddItemWithValue(GroupCalendar.cRRole, "ROLE_R", nil, roleCode == "R")
+		pMenu:AddItemWithValue(GroupCalendar.cMRole, "ROLE_M", nil, roleCode == "M")
 	end
 end
 
@@ -1067,13 +1067,13 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 				self:Refresh()
 			end
 		elseif pPartID == "ASSIST" then
-			local vAttendanceInfo = self.Event:GetAttendance()[vMemberInfo.Name]
+			local attendanceInfo = self.Event:GetAttendance()[vMemberInfo.Name]
 			
-			if not vAttendanceInfo then
+			if not attendanceInfo then
 				return
 			end
 			
-			self.Event:SetModerator(vMemberInfo.Name, vAttendanceInfo.ModStatus ~= "MODERATOR")
+			self.Event:SetModerator(vMemberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
 			self:Refresh()
 		elseif pPartID == "LEADER" then
 			self:Refresh()
@@ -1099,13 +1099,13 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 			self.Event:SetInviteStatus(vMemberInfo.Name, _G["CALENDAR_INVITESTATUS_"..vStatus])
 		
 		elseif pPartID:sub(1, 5) == "ROLE_" then
-			local vRoleCode = pPartID:sub(6)
+			local roleCode = pPartID:sub(6)
 			
 			if self.Event:GetAttendance()[vMemberInfo.Name] then
-				self.Event:SetInviteRoleCode(vMemberInfo.Name, vRoleCode)
+				self.Event:SetInviteRoleCode(vMemberInfo.Name, roleCode)
 			end
 			
-			GroupCalendar:SetPlayerDefaultRoleCode(vMemberInfo.Name, vRoleCode)
+			GroupCalendar:SetPlayerDefaultRoleCode(vMemberInfo.Name, roleCode)
 			
 			self:Rebuild()
 			
@@ -1124,9 +1124,9 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 				DemoteAssistant(vMemberInfo.Name)
 			end
 		elseif pPartID == "MODERATOR" then
-			local vAttendanceInfo = self.Event:GetAttendance()[vMemberInfo.Name]
+			local attendanceInfo = self.Event:GetAttendance()[vMemberInfo.Name]
 			
-			self.Event:SetModerator(vMemberInfo.Name, vAttendanceInfo.ModStatus ~= "MODERATOR")
+			self.Event:SetModerator(vMemberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
 			self:Refresh()
 		end
 	end
@@ -1296,13 +1296,13 @@ end
 
 function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 			pEvent,
-			pPlayerInfo, pInfoText,
+			playerInfo, pInfoText,
 			pSelected,
 			pIndent,
 			pSelectionFunc,
 			pMenuFunc)
 	
-	self.PlayerInfo = pPlayerInfo
+	self.PlayerInfo = playerInfo
 	self.PlayerInfoText = pInfoText
 	self.Event = pEvent
 	
@@ -1319,11 +1319,11 @@ function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 	local vEventIsRunning = GroupCalendar.RunningEvent == pEvent
 	
 	if not vEventIsRunning then
-		if pPlayerInfo.ModStatus == "CREATOR" then
+		if playerInfo.ModStatus == "CREATOR" then
 			self.CheckButton:SetDisplayMode("LEADER")
 			self.CheckButton:SetChecked(true)
 			
-		elseif pPlayerInfo.ModStatus == "MODERATOR" then
+		elseif playerInfo.ModStatus == "MODERATOR" then
 			self.CheckButton:SetDisplayMode("ASSIST")
 			self.CheckButton:SetChecked(true)
 		
@@ -1332,13 +1332,13 @@ function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 			self.CheckButton:SetChecked(false)
 		end
 		
-		local vAttendanceInfo = self.Event:GetAttendance()[GroupCalendar.PlayerName] -- Use the current player's name to determine enabling
+		local attendanceInfo = self.Event:GetAttendance()[GroupCalendar.PlayerName] -- Use the current player's name to determine enabling
 		
-		self.CheckButton:SetEnabled(vAttendanceInfo and (vAttendanceInfo.ModStatus == "CREATOR" or vAttendanceInfo.ModStatus == "MODERATOR"))
+		self.CheckButton:SetEnabled(attendanceInfo and (attendanceInfo.ModStatus == "CREATOR" or attendanceInfo.ModStatus == "MODERATOR"))
 		self.CheckButton:Show()
 	elseif pEvent.Group
-	and pEvent.Group[pPlayerInfo.Name]
-	and not pEvent.Group[pPlayerInfo.Name].LeftGroup then
+	and pEvent.Group[playerInfo.Name]
+	and not pEvent.Group[playerInfo.Name].LeftGroup then
 		self.CheckButton:Hide()
 	
 	else
@@ -1349,44 +1349,44 @@ function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 	
 	--
 	
-	local vRosterInfo = GroupCalendar.GuildLib.Roster.Players[pPlayerInfo.Name]
+	local vRosterInfo = GroupCalendar.GuildLib.Roster.Players[playerInfo.Name]
 	local vOfflineGuildMember = vEventIsRunning and vRosterInfo and vRosterInfo.Offline
 	
-	self.ClassColorCode = (not vOfflineGuildMember and pPlayerInfo.ClassID and GroupCalendar.RAID_CLASS_COLOR_CODES[pPlayerInfo.ClassID]) or "|cff888888"
+	self.ClassColorCode = (not vOfflineGuildMember and playerInfo.ClassID and GroupCalendar.RAID_CLASS_COLOR_CODES[playerInfo.ClassID]) or "|cff888888"
 	
-	local vAttendance = pEvent:GetAttendance()
-	local vAttendanceInfo = vAttendance and vAttendance[pPlayerInfo.Name]
+	local attendance = pEvent:GetAttendance()
+	local attendanceInfo = attendance and attendance[playerInfo.Name]
 	
-	local vClassID = (vAttendanceInfo and vAttendanceInfo.ClassID) or pPlayerInfo.ClassID
-	self.PlayerRoleCode = (vAttendanceInfo and vAttendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(pPlayerInfo.Name, vClassID)
+	local vClassID = (attendanceInfo and attendanceInfo.ClassID) or playerInfo.ClassID
+	self.PlayerRoleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(playerInfo.Name, vClassID)
 	local vRoleInfo = GroupCalendar.RoleInfoByID[self.PlayerRoleCode]
 	
-	local vInviteStatus = pPlayerInfo:GetInviteStatus()
+	local inviteStatus = playerInfo:GetInviteStatus()
 	
 	local vTitleNote
 	
-	if vInviteStatus == CALENDAR_INVITESTATUS_INVITED
-	or vInviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-	or vInviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-	or vInviteStatus == CALENDAR_INVITESTATUS_DECLINED
-	or vInviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
-	or vInviteStatus == CALENDAR_INVITESTATUS_OUT then
+	if inviteStatus == CALENDAR_INVITESTATUS_INVITED
+	or inviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+	or inviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+	or inviteStatus == CALENDAR_INVITESTATUS_DECLINED
+	or inviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
+	or inviteStatus == CALENDAR_INVITESTATUS_OUT then
 		vTitleNote = tostring(vRoleInfo and (vRoleInfo.ColorCode..vRoleInfo.Name))
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED then
 		vTitleNote = GroupCalendar.cInviteStatusText.CONFIRMED
-	elseif vInviteStatus == CALENDAR_INVITESTATUS_STANDBY then
+	elseif inviteStatus == CALENDAR_INVITESTATUS_STANDBY then
 		vTitleNote = GroupCalendar.cInviteStatusText.STANDBY
 	else
-		vTitleNote = GroupCalendar.cInviteStatusText[vInviteStatus]
+		vTitleNote = GroupCalendar.cInviteStatusText[inviteStatus]
 		
-		if not vTitleNote then vTitleNote = tostring(vInviteStatus).."?" end
+		if not vTitleNote then vTitleNote = tostring(inviteStatus).."?" end
 	end
 	
-	vTitleNote = string.format("%s%s, %s %s", vTitleNote, self.ClassColorCode, pPlayerInfo.Level or "", GroupCalendar.cClassName[vClassID] and GroupCalendar.cClassName[vClassID].Male or "")
+	vTitleNote = string.format("%s%s, %s %s", vTitleNote, self.ClassColorCode, playerInfo.Level or "", GroupCalendar.cClassName[vClassID] and GroupCalendar.cClassName[vClassID].Male or "")
 	
 	--
 	
-	self.Title:SetText((self.ClassColorCode or "")..pPlayerInfo.Name)
+	self.Title:SetText((self.ClassColorCode or "")..playerInfo.Name)
 	self.TitleNote:SetText(vTitleNote and (" "..vTitleNote) or "")
 	
 	self.MenuFunc = pMenuFunc
@@ -1397,7 +1397,7 @@ function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 		self.Menu:Hide()
 	end
 	
-	local vActualInviteStatus = pEvent:GetAttendance()[pPlayerInfo.Name] and pEvent:GetAttendance()[pPlayerInfo.Name].InviteStatus
+	local vActualInviteStatus = pEvent:GetAttendance()[playerInfo.Name] and pEvent:GetAttendance()[playerInfo.Name].InviteStatus
 	
 	self.NeedsConfirm = pEvent:CanEdit()
 	                  and (vActualInviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
@@ -1418,7 +1418,7 @@ function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 		
 		if vIsConfirmedOrStandby
 		and GroupCalendar.RunningEvent == pEvent
-		and not GroupCalendar.RaidLib.PlayersByName[pPlayerInfo.Name]
+		and not GroupCalendar.RaidLib.PlayersByName[playerInfo.Name]
 		and vSelfPlayerInfo.Rank > 0 then
 			self.InviteButton:Show()
 			self.InfoText:SetPoint("RIGHT", self.InviteButton, "LEFT")
@@ -1454,8 +1454,8 @@ function GroupCalendar._PlayerGroup:BeginRebuild()
 	end
 end
 
-function GroupCalendar._PlayerGroup:AddPlayerInfo(pPlayerInfo)
-	table.insert(self.Members, pPlayerInfo)
+function GroupCalendar._PlayerGroup:AddPlayerInfo(playerInfo)
+	table.insert(self.Members, playerInfo)
 end
 
 function GroupCalendar._PlayerGroup:EndRebuild()
@@ -1504,18 +1504,18 @@ function GroupCalendar._StatusGroup:Rebuild()
 		self.Members[vKey] = nil
 	end
 	
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
-	if not vAttendance then
+	if not attendance then
 		return
 	end
 	
-	for _, vInfo in pairs(vAttendance) do
-		local vInviteStatus, vInviteStatus2 = vInfo.InviteStatus, vInfo:GetInviteStatus()
+	for _, vInfo in pairs(attendance) do
+		local inviteStatus, vInviteStatus2 = vInfo.InviteStatus, vInfo:GetInviteStatus()
 		
-		if (vInviteStatus == self.Status
+		if (inviteStatus == self.Status
 		or vInviteStatus2 == self.Status
-		or vInviteStatus == self.Status2
+		or inviteStatus == self.Status2
 		or vInviteStatus2 == self.Status2)
 		and not vInfo:IsGroupMember() then
 			table.insert(self.Members, vInfo)
@@ -1523,16 +1523,16 @@ function GroupCalendar._StatusGroup:Rebuild()
 	end
 	
 	if GroupCalendar.RunningEvent == self.Event then
-		for vName, vPlayerInfo in pairs(self.Event.Group) do
-			local vInviteStatus, vInviteStatus2 = vPlayerInfo.InviteStatus, vPlayerInfo:GetInviteStatus()
+		for name, playerInfo in pairs(self.Event.Group) do
+			local inviteStatus, vInviteStatus2 = playerInfo.InviteStatus, playerInfo:GetInviteStatus()
 			
-			if not vAttendance[vName]
-			and (vInviteStatus == self.Status
+			if not attendance[name]
+			and (inviteStatus == self.Status
 			or vInviteStatus2 == self.Status
-			or vInviteStatus == self.Status2
+			or inviteStatus == self.Status2
 			or vInviteStatus2 == self.Status2)
-			and not vPlayerInfo:IsGroupMember() then
-				table.insert(self.Members, vPlayerInfo)
+			and not playerInfo:IsGroupMember() then
+				table.insert(self.Members, playerInfo)
 			end
 		end
 	end
@@ -1586,20 +1586,20 @@ function GroupCalendar._ClassGroup:Rebuild()
 	self.NumStandby = 0
 	self.NumJoined = 0
 	
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
-	if not vAttendance then
+	if not attendance then
 		return
 	end
 	
-	for _, vInfo in pairs(vAttendance) do
-		local vInviteStatus = vInfo:GetInviteStatus()
+	for _, vInfo in pairs(attendance) do
+		local inviteStatus = vInfo:GetInviteStatus()
 		
 		if vInfo.ClassID == self.ClassID
 		and vInfo:IsGroupMember() then
-			if vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-			or vInviteStatus == "INVITED"
-			or vInviteStatus == "JOINED" then
+			if inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+			or inviteStatus == "INVITED"
+			or inviteStatus == "JOINED" then
 				self.NumConfirmed = self.NumConfirmed + 1
 			else
 				self.NumStandby = self.NumStandby + 1
@@ -1610,16 +1610,16 @@ function GroupCalendar._ClassGroup:Rebuild()
 	end
 	
 	if GroupCalendar.RunningEvent == self.Event then
-		for vName, vPlayerInfo in pairs(self.Event.Group) do
-			if vPlayerInfo.ClassID == self.ClassID then
-				if GroupCalendar.RaidLib.PlayersByName[vName] then
+		for name, playerInfo in pairs(self.Event.Group) do
+			if playerInfo.ClassID == self.ClassID then
+				if GroupCalendar.RaidLib.PlayersByName[name] then
 					self.NumJoined = self.NumJoined + 1
 				end
 				
-				if not vAttendance[vName] then
+				if not attendance[name] then
 					self.NumConfirmed = self.NumConfirmed + 1
 					
-					table.insert(self.Members, vPlayerInfo)
+					table.insert(self.Members, playerInfo)
 				end
 			end
 		end
@@ -1675,14 +1675,14 @@ function GroupCalendar._RoleGroup:Rebuild()
 	self.NumStandby = 0
 	self.NumJoined = 0
 	
-	local vAttendance = self.Event:GetAttendance()
+	local attendance = self.Event:GetAttendance()
 	
-	if not vAttendance then
+	if not attendance then
 		return
 	end
 	
-	for _, vInfo in pairs(vAttendance) do
-		local vInviteStatus = vInfo:GetInviteStatus()
+	for _, vInfo in pairs(attendance) do
+		local inviteStatus = vInfo:GetInviteStatus()
 		
 		if vInfo.RoleCode == self.RoleCode
 		and vInfo:IsGroupMember() then
@@ -1697,19 +1697,19 @@ function GroupCalendar._RoleGroup:Rebuild()
 	end
 	
 	if GroupCalendar.RunningEvent == self.Event then
-		for vName, vPlayerInfo in pairs(self.Event.Group) do
-			local vRoleCode = GroupCalendar:GetPlayerDefaultRoleCode(vName, vPlayerInfo.ClassID)
+		for name, playerInfo in pairs(self.Event.Group) do
+			local roleCode = GroupCalendar:GetPlayerDefaultRoleCode(name, playerInfo.ClassID)
 			
-			if vRoleCode == self.RoleCode then
-				if GroupCalendar.RaidLib.PlayersByName[vName] then
+			if roleCode == self.RoleCode then
+				if GroupCalendar.RaidLib.PlayersByName[name] then
 					self.NumJoined = self.NumJoined + 1
 				end
 				
-				if not vAttendance[vName]
-				and vPlayerInfo:IsGroupMember() then
+				if not attendance[name]
+				and playerInfo:IsGroupMember() then
 					self.NumConfirmed = self.NumConfirmed + 1
 					
-					table.insert(self.Members, vPlayerInfo)
+					table.insert(self.Members, playerInfo)
 				end
 			end
 		end
@@ -1747,21 +1747,21 @@ GroupCalendar._GroupPlayerMethods = {}
 ----------------------------------------
 
 function GroupCalendar._GroupPlayerMethods:IsGroupMember()
-	local vInviteStatus = self:GetInviteStatus()
+	local inviteStatus = self:GetInviteStatus()
 	
 	return self.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
 	    or self.InviteStatus == CALENDAR_INVITESTATUS_STANDBY
-	    or vInviteStatus == "INVITED"
-	    or vInviteStatus == "JOINED"
+	    or inviteStatus == "INVITED"
+	    or inviteStatus == "JOINED"
 end
 
 function GroupCalendar._GroupPlayerMethods:IsConfirmedMember()
-	local vInviteStatus = self:GetInviteStatus()
+	local inviteStatus = self:GetInviteStatus()
 	
-	return vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-	    or vInviteStatus == "INVITED"
-	    or vInviteStatus == "JOINED"
-	    or vInviteStatus == "OFFLINE"
+	return inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+	    or inviteStatus == "INVITED"
+	    or inviteStatus == "JOINED"
+	    or inviteStatus == "OFFLINE"
 end
 
 function GroupCalendar._GroupPlayerMethods:GetInviteStatus()
@@ -1771,10 +1771,10 @@ function GroupCalendar._GroupPlayerMethods:GetInviteStatus()
 	if GroupCalendar.RunningEvent == self.EventGroup.Event then
 		-- If the player is currently in the group then the status is always "JOINED"
 		
-		local vPlayerGroupInfo = self.EventGroup.Event.Group and self.EventGroup.Event.Group[self.Name]
+		local playerGroupInfo = self.EventGroup.Event.Group and self.EventGroup.Event.Group[self.Name]
 		
-		if vPlayerGroupInfo then
-			if vPlayerGroupInfo.LeftGroup then
+		if playerGroupInfo then
+			if playerGroupInfo.LeftGroup then
 				return "LEFT"
 			else
 				return "JOINED"
@@ -1787,10 +1787,10 @@ function GroupCalendar._GroupPlayerMethods:GetInviteStatus()
 		
 		-- If they are invited, then determine the status from the invitation data
 		
-		local vAttendanceInfo = self.EventGroup.Event:GetAttendance()[self.Name]
+		local attendanceInfo = self.EventGroup.Event:GetAttendance()[self.Name]
 		
-		if vAttendanceInfo then
-			return vAttendanceInfo.RaidInviteStatus or vAttendanceInfo.InviteStatus
+		if attendanceInfo then
+			return attendanceInfo.RaidInviteStatus or attendanceInfo.InviteStatus
 		end
 		
 		-- Otherwise they were never invited but joined and then left the group, so use "LEFT" for their status
@@ -1799,18 +1799,18 @@ function GroupCalendar._GroupPlayerMethods:GetInviteStatus()
 	else
 		-- If they are invited, then determine the status from the invitation data
 		
-		local vAttendanceInfo = self.EventGroup.Event:GetAttendance()[self.Name]
+		local attendanceInfo = self.EventGroup.Event:GetAttendance()[self.Name]
 		
-		if vAttendanceInfo then
-			return vAttendanceInfo.InviteStatus or vAttendanceInfo.RaidInviteStatus
+		if attendanceInfo then
+			return attendanceInfo.InviteStatus or attendanceInfo.RaidInviteStatus
 		end
 		
 		-- If the player is currently in the group then the status is always "JOINED"
 		
-		local vPlayerGroupInfo = self.EventGroup.Event.Group and self.EventGroup.Event.Group[self.Name]
+		local playerGroupInfo = self.EventGroup.Event.Group and self.EventGroup.Event.Group[self.Name]
 		
-		if vPlayerGroupInfo then
-			if vPlayerGroupInfo.LeftGroup then
+		if playerGroupInfo then
+			if playerGroupInfo.LeftGroup then
 				return "LEFT"
 			else
 				return "JOINED"
@@ -1841,32 +1841,32 @@ GroupCalendar._GroupPlayerMethods.InviteStatusSortOrder =
 	[CALENDAR_INVITESTATUS_DECLINED] = 14,
 }
 
-function GroupCalendar._GroupPlayerMethods:LessThanByStatus(pPlayerInfo)
-	local vPriority1 = self.InviteStatusSortOrder[self:GetInviteStatus()]
-	local vPriority2 = self.InviteStatusSortOrder[pPlayerInfo:GetInviteStatus()]
+function GroupCalendar._GroupPlayerMethods:LessThanByStatus(playerInfo)
+	local priority1 = self.InviteStatusSortOrder[self:GetInviteStatus()]
+	local priority2 = self.InviteStatusSortOrder[playerInfo:GetInviteStatus()]
 	
-	if vPriority1 ~= vPriority2 then
-		if not vPriority1 then
+	if priority1 ~= priority2 then
+		if not priority1 then
 			return false
-		elseif not vPriority2 then
+		elseif not priority2 then
 			return true
-		elseif vPriority1 < vPriority2 then
+		elseif priority1 < priority2 then
 			return true
 		else
 			return false
 		end
 	end -- if
 	
-	return self:LessThanByDate(pPlayerInfo)
+	return self:LessThanByDate(playerInfo)
 end
 
-function GroupCalendar._GroupPlayerMethods:LessThanByDate(pPlayerInfo)
-	local vResult, vEqual = GroupCalendar.DateLib:CompareDateTime(self.ResponseDate, self.ResponseTime, pPlayerInfo.ResponseDate, pPlayerInfo.ResponseTime)
+function GroupCalendar._GroupPlayerMethods:LessThanByDate(playerInfo)
+	local result, vEqual = GroupCalendar.DateLib:CompareDateTime(self.ResponseDate, self.ResponseTime, playerInfo.ResponseDate, playerInfo.ResponseTime)
 	
 	if not vEqual then
-		return vResult
+		return result
 	else
-		return self.Name < pPlayerInfo.Name
+		return self.Name < playerInfo.Name
 	end
 end
 
