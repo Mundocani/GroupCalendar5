@@ -1346,6 +1346,17 @@ function Addon.UIElementsLib._DropDownMenuItems:AddItemWithValue(title, value, o
 	return item
 end
 
+function Addon.UIElementsLib._DropDownMenuItems:AddSingleChoiceGroup(title, items, get, set, disable)
+	self:AddCategoryTitle(title)
+	for index, item in ipairs(items) do
+		self:AddToggle(item.Title, function ()
+			return get() == item.Value
+		end, function (menu, value)
+			set(item.Value)
+		end, disable)
+	end
+end
+
 ----------------------------------------
 Addon.UIElementsLib._DropDownMenu = {}
 ----------------------------------------

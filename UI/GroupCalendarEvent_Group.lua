@@ -999,15 +999,50 @@ function GroupCalendar.UI._EventGroup:AddGroupItem(pGroup, pFirstItemIndex, pNum
 	return vItemIndex
 end
 
-function GroupCalendar.UI._EventGroup:ViewMenuFunc(pMenu, pMenuID)
-	pMenu:AddCategoryItem(GroupCalendar.cViewGroupBy)
-	pMenu:AddItemWithValue(self.GroupByTitle.ROLE, "GROUP_ROLE", nil, self.GroupBy == "ROLE")
-	pMenu:AddItemWithValue(self.GroupByTitle.CLASS, "GROUP_CLASS", nil, self.GroupBy == "CLASS")
-	pMenu:AddItemWithValue(self.GroupByTitle.STATUS, "GROUP_STATUS", nil, self.GroupBy == "STATUS")
-	pMenu:AddCategoryItem(GroupCalendar.cViewSortBy)
-	pMenu:AddItemWithValue(self.SortByTitle.DATE, "SORT_DATE", nil, self.SortBy == "DATE")
-	pMenu:AddItemWithValue(self.SortByTitle.RANK, "SORT_RANK", nil, self.SortBy == "RANK")
-	pMenu:AddItemWithValue(self.SortByTitle.NAME, "SORT_NAME", nil, self.SortBy == "NAME")
+function GroupCalendar.UI._EventGroup:ViewMenuFunc(menu, menuID)
+	menu:AddSingleChoiceGroup(
+		-- title
+		GroupCalendar.cViewGroupBy,
+
+		-- items
+		{
+			{Title = self.GroupByTitle.ROLE, Value = "ROLE"},
+			{Title = self.GroupByTitle.CLASS, Value = "CLASS"},
+			{Title = self.GroupByTitle.STATUS, Value = "STATUS"},
+		},
+
+		-- get
+		function ()
+			return self.GroupBy
+		end,
+
+		-- set
+		function (value)
+			self:SetGroupBy(value)
+		end
+	)
+
+	menu:AddSingleChoiceGroup(
+		-- title
+		GroupCalendar.cViewSortBy,
+
+		-- items
+		{
+			{Title = self.SortByTitle.DATE, Value = "DATE"},
+			{Title = self.SortByTitle.RANK, Value = "RANK"},
+			{Title = self.SortByTitle.NAME, Value = "NAME"},
+		},
+
+		-- get
+		function ()
+			return self.SortBy
+		end,
+
+		-- set
+		function (value)
+			self:SetSortBy(value)
+		end
+	)
 end
 
 function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
@@ -1124,7 +1159,7 @@ function GroupCalendar.UI._EventGroup._ListItem:Construct(pParent)
 		self.SelectionFunc(self, pMouseButton, pCheckButton.DisplayMode)
 	end)
 	
-	self.Menu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) if self.MenuFunc then self:MenuFunc(...) end end, self.cItemHeight + 3)
+	self.Menu = GroupCalendar:New(GroupCalendar.UIElementsLib._DropDownMenuButton, self, function (...) if self.MenuFunc then self:MenuFunc(...) end end, self.cItemHeight + 3)
 	self.Menu:SetPoint("RIGHT", self, "RIGHT")
 	self.Menu.ItemClicked = function (pMenu, pItemID)
 		self.SelectionFunc(self, "MENU", pItemID)
