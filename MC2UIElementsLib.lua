@@ -1960,35 +1960,90 @@ end
 Addon.UIElementsLib._DatePicker = {}
 ----------------------------------------
 
-function Addon.UIElementsLib._DatePicker:New(pParent, pTitle)
-	return CreateFrame("Frame", nil, pParent)
+function Addon.UIElementsLib._DatePicker:New(parent, title)
+	return CreateFrame("Frame", nil, parent)
 end
 
-function Addon.UIElementsLib._DatePicker:Construct(pParent, pLabel)
+function Addon.UIElementsLib._DatePicker:Construct(parent, title)
 	self.Enabled = true
-	
-	self.MonthMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:MonthMenuFunc(...) end)
+
+	-- Month menu
+	self.MonthMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self,
+		function (menu)
+			menu:AddSingleChoiceGroup(nil,
+				{
+					{title = Addon.CALENDAR_MONTH_NAMES[1], value = 1},
+					{title = Addon.CALENDAR_MONTH_NAMES[2], value = 2},
+					{title = Addon.CALENDAR_MONTH_NAMES[3], value = 3},
+					{title = Addon.CALENDAR_MONTH_NAMES[4], value = 4},
+					{title = Addon.CALENDAR_MONTH_NAMES[5], value = 5},
+					{title = Addon.CALENDAR_MONTH_NAMES[6], value = 6},
+					{title = Addon.CALENDAR_MONTH_NAMES[7], value = 7},
+					{title = Addon.CALENDAR_MONTH_NAMES[8], value = 8},
+					{title = Addon.CALENDAR_MONTH_NAMES[9], value = 9},
+					{title = Addon.CALENDAR_MONTH_NAMES[10], value = 10},
+					{title = Addon.CALENDAR_MONTH_NAMES[11], value = 11},
+					{title = Addon.CALENDAR_MONTH_NAMES[12], value = 12},
+				},
+				function ()
+					return self.month
+				end,
+				function (value)
+					self.month = value
+					self.MonthMenu:SetSelectedValue(value)
+					self:ValidateDay()
+					self:DateValueChanged()
+				end
+			)
+		end)
 	self.MonthMenu:SetWidth(120)
-	self.MonthMenu.ItemClickedFunc = function (pMenu, pValue)
-		self:ValidateDay()
-		self:DateValueChanged()
-	end
-	
-	self.YearMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:YearMenuFunc(...) end)
+
+	-- Year menu
+	self.YearMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self,
+		function (menu)
+			local currentDate = C_Calendar.GetDate()
+			menu:AddSingleChoiceGroup(nil,
+				{
+					{title = currentDate.year, value = currentDate.year},
+					{title = currentDate.year + 1, value = currentDate.year + 1}
+				},
+				function ()
+					return self.year
+				end,
+				function (value)
+					self.year = value
+					self.YearMenu:SetSelectedValue(value)
+					self:ValidateDay()
+					self:DateValueChanged()
+				end
+			)
+		end)
 	self.YearMenu:SetWidth(75)
-	self.YearMenu.ItemClickedFunc = function (pMenu, pValue)
-		self:ValidateDay()
-		self:DateValueChanged()
-	end
-	
-	-- Create day last since it depends on month and year to populate itself
-	
-	self.DayMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:DayMenuFunc(...) end)
+
+	-- Day menu
+	self.DayMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self,
+		function (menu)
+			local numDays = Addon.DateLib:GetDaysInMonth(self.month, self.year)
+			if not numDays then
+				return
+			end
+
+			for day = 1, numDays do
+				local item = menu:AddToggle(day,
+					function ()
+						return self.day == day
+					end,
+					function ()
+						self.day = day
+						self.DayMenu:SetSelectedValue(day)
+						self:DateValueChanged()
+					end
+				)
+				item.value = day
+			end
+		end)
 	self.DayMenu:SetWidth(55)
-	self.DayMenu.ItemClickedFunc = function (pMenu, pValue)
-		self:DateValueChanged()
-	end
-	
+
 	-- Layout the menus based on locale
 	
 	if string.sub(GetLocale(), -2) == "US" then
@@ -2010,7 +2065,7 @@ function Addon.UIElementsLib._DatePicker:Construct(pParent, pLabel)
 	
 	--
 	
-	self:SetLabel(pLabel or "")
+	self:SetLabel(title or "")
 end
 
 function Addon.UIElementsLib._DatePicker:SetEnabled(pEnabled)
@@ -2021,21 +2076,23 @@ function Addon.UIElementsLib._DatePicker:SetEnabled(pEnabled)
 	self.YearMenu:SetEnabled(pEnabled)
 end
 
-function Addon.UIElementsLib._DatePicker:SetDate(pMonth, pDay, pYear)
-	if not pMonth then
-		self.YearMenu:SetCurrentValueText(nil)
-		self.MonthMenu:SetCurrentValueText(nil)
-		self.DayMenu:SetCurrentValueText(nil)
-		
+function Addon.UIElementsLib._DatePicker:SetDate(month, day, year)
+	self.month = month
+	self.day = day
+	self.year = year
+
+	if not month then
+		self.YearMenu:SetSelectedValue(nil)
+		self.MonthMenu:SetSelectedValue(nil)
+		self.DayMenu:SetSelectedValue(nil)
 		return
 	end
 	
 	-- Set DayMenu last so that month and year will be available for calculating
 	-- the number of days in the month
-	
-	self.YearMenu:SetCurrentValueText(pYear)
-	self.MonthMenu:SetCurrentValueText(pMonth)
-	self.DayMenu:SetCurrentValueText(pDay)
+	self.YearMenu:SetSelectedValue(year)
+	self.MonthMenu:SetSelectedValue(month)
+	self.DayMenu:SetSelectedValue(day)
 end
 
 function Addon.UIElementsLib._DatePicker:DateValueChanged()
@@ -2045,39 +2102,15 @@ function Addon.UIElementsLib._DatePicker:DateValueChanged()
 end
 
 function Addon.UIElementsLib._DatePicker:ValidateDay()
-	local vNumDays = Addon.DateLib:GetDaysInMonth(self.MonthMenu:GetSelectedValue(), self.YearMenu:GetSelectedValue())
+	local numDays = Addon.DateLib:GetDaysInMonth(self.MonthMenu:GetSelectedValue(), self.YearMenu:GetSelectedValue())
 	
-	if self.DayMenu:GetSelectedValue() > vNumDays then
-		self.DayMenu:SetSelectedValue(vNumDays)
+	if self.DayMenu:GetSelectedValue() > numDays then
+		self.DayMenu:SetSelectedValue(numDays)
 	end
 end
 
 function Addon.UIElementsLib._DatePicker:GetDate()
-	return self.MonthMenu:GetSelectedValue(), self.DayMenu:GetSelectedValue(), self.YearMenu:GetSelectedValue()
-end
-
-function Addon.UIElementsLib._DatePicker:MonthMenuFunc(pMenu)
-	for month = 1, 12 do
-		pMenu:AddItem(Addon.CALENDAR_MONTH_NAMES[month])
-	end
-end
-
-function Addon.UIElementsLib._DatePicker:DayMenuFunc(pMenu)
-	local vNumDays = Addon.DateLib:GetDaysInMonth(self.MonthMenu:GetSelectedValue(), self.YearMenu:GetSelectedValue())
-	
-	if not vNumDays then
-		return
-	end
-	
-	for vDay = 1, vNumDays do
-		pMenu:AddItem(vDay)
-	end
-end
-
-function Addon.UIElementsLib._DatePicker:YearMenuFunc(menu)
-	local currentDate = C_Calendar.GetDate()
-	menu:AddItem(currentDate.year)
-	menu:AddItem(currentDate.year + 1)
+	return self.month, self.day, self.year
 end
 
 function Addon.UIElementsLib._DatePicker:SetLabel(pLabel)
