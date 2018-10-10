@@ -624,13 +624,16 @@ function GroupCalendar._DayFrame:Update()
 		
 		-- Set the main texture for the frame
 		
+		GroupCalendar:DebugMessage(self.Day.." SequenceType: %s", tostring(vEvent.SequenceType))
 		if vEvent.SequenceType ~= "ONGOING"
+		and vEvent.SequenceType ~= "END"
 		and not vEvent:IsCooldownEvent()
 		and not vEvent:IsBirthdayEvent()
 		and vEvent.InviteStatus ~= CALENDAR_INVITESTATUS_DECLINED then
-			if vDidSetIcon
-			and (vSetIconEventData.CalendarType == "HOLIDAY" or vSetIconEventData:HasPassed(vCurrentDateTimeStamp))
-			and vEvent:IsPlayerCreated() then
+			if vEvent:IsPlayerCreated()
+			and vDidSetIcon
+			and (vSetIconEventData.CalendarType == "HOLIDAY"
+			  or vSetIconEventData:HasPassed(vCurrentDateTimeStamp)) then
 				vDidSetIcon = false -- Un-set the icon so it'll get re-set by this event
 			end
 			

@@ -2119,11 +2119,11 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 				assert(index ~= nil)
 				
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("CalendarEventSetStatus/Moderator(%s): Index=%s, Status=%s", name, tostring(index), tostring(info.InviteStatus))
+					GroupCalendar:DebugMessage("EventSetInviteStatus/Moderator(%s): Index=%s, Status=%s", name, tostring(index), tostring(info.InviteStatus))
 				end
 				
 				if currentInfo.InviteStatus ~= info.InviteStatus then
-					GroupCalendar.WoWCalendar:EventSetStatus(index, info.InviteStatus)
+					GroupCalendar.WoWCalendar:EventSetInviteStatus(index, info.InviteStatus)
 				end
 				
 				if currentInfo.ModStatus ~= "CREATOR" and currentInfo.ModStatus ~= info.ModStatus then
