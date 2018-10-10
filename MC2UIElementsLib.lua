@@ -1435,17 +1435,17 @@ function Addon.UIElementsLib._DropDownMenuButton:Construct(pParent, pMenuFunc, p
 	self.Button.HighlightTexture:SetTexture("Interface\\Buttons\\UI-Common-MouseHilight")
 	self.Button.HighlightTexture:SetBlendMode("ADD")
 	self.Button.HighlightTexture:SetAllPoints()
-	
-	self.Button:SetScript("OnClick", function (frame, button)
-		self:ToggleMenu()
-		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-	end)
 
 	self.Icon = self:CreateTexture(self:GetName().."Icon", "ARTWORK")
 	self.Icon:SetWidth(1)
 	self.Icon:SetHeight(1)
 	self.Icon:SetPoint("TOPLEFT", self.LeftTexture, "TOPLEFT", 0, 0)
 	
+	self.Button:SetScript("OnClick", function (frame, button)
+		self:ToggleMenu()
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+	end)
+
 	self.MenuFunc = pMenuFunc
 	
 	self.initialize = self.WoWMenuInitFunction
@@ -1488,7 +1488,7 @@ function Addon.UIElementsLib._DropDownMenuButton:ToggleMenu()
 	self.point = self.AnchorPoint or "TOPRIGHT"
 	self.relativePoint = self.AnchorRelativePoint or "BOTTOMRIGHT"
 	self.xOffset = self.AnchorXOffset or 0
-	self.yOffset = self.AnchorYOffset or 9
+	self.yOffset = self.AnchorYOffset or 3
 	
 	-- Get the items
 	self:RefreshItems()
