@@ -159,18 +159,28 @@ function GroupCalendar.UI._EventInvite:Rebuild(pRebuildInviteGroups)
 		table.insert(self.InviteGroups, self.CurrentPartyInviteGroup)
 		
 		-- Add the player's guild if they're in a guild and this isn't a guild-wide event
-		
 		if IsInGuild() then
 			table.insert(self.InviteGroups, GroupCalendar:New(GroupCalendar._GuildInviteGroup, GroupCalendar.GuildLib.Roster, true))
 		end
-		
+
+		-- Add other guilds
 		for vGuildName, vGuildRoster in pairs(GroupCalendar.RealmData.Guilds) do
 			if vGuildName ~= GroupCalendar.PlayerGuild then
 				table.insert(self.InviteGroups, GroupCalendar:New(GroupCalendar._GuildInviteGroup, vGuildRoster, false))
 			end
 		end
-		
+
+		-- Add clubs
+		local clubs = C_Club.GetSubscribedClubs()
+		for clubIndex, club in ipairs(clubs) do
+			if club.clubType ~= Enum.ClubType.Guild then
+				table.insert(self.InviteGroups, GroupCalendar:New(GroupCalendar._ClubInviteGroup, club, false))
+			end
+		end
+
+		-- Add friends
 		table.insert(self.InviteGroups, self.FriendsInviteGroup)
+
 --		for vTeamIndex = 1, 3 do
 --			if GetArenaTeam(vTeamIndex) then
 --				table.insert(self.InviteGroups, GroupCalendar:New(GroupCalendar._ArenaInviteGroup, vTeamIndex))
@@ -659,6 +669,38 @@ function GroupCalendar._GuildInviteGroup:GetIndexedMember(pIndex)
 end
 
 ----------------------------------------
+GroupCalendar._ClubInviteGroup = {}
+----------------------------------------
+
+function GroupCalendar._ClubInviteGroup:Construct(club, expanded)
+	self.Club = club
+
+	self.Title = string.format(HIGHLIGHT_FONT_COLOR_CODE.."<%s>", club.name or "untitled")
+	self.Expanded = expanded
+
+	self:Rebuild()
+end
+
+function GroupCalendar._ClubInviteGroup:Rebuild()
+	self.memberIds = C_Club.GetClubMembers(self.Club.clubId)
+end
+
+function GroupCalendar._ClubInviteGroup:GetInfoText()
+end
+
+function GroupCalendar._ClubInviteGroup:GetNumMembers()
+	return #self.memberIds
+end
+
+function GroupCalendar._ClubInviteGroup:GetIndexedMember(index)
+	local memberId = self.memberIds[index]
+	local memberInfo = C_Club.GetMemberInfo(self.Club.clubId, memberId)
+	local classInfo = memberInfo.classID and C_CreatureInfo.GetClassInfo(memberInfo.classID) or {}
+
+	return nil, {Name = memberInfo.name, Level = memberInfo.level, Class = classInfo.className, ClassID = classInfo.classFile, Offline = memberInfo.presence == Enum.ClubMemberPresence.Offline}
+end
+
+----------------------------------------
 GroupCalendar._ArenaInviteGroup = {}
 ----------------------------------------
 
@@ -793,7 +835,7 @@ function GroupCalendar._OthersInviteGroup:Rebuild()
 	
 	for _, vInviteGroup in ipairs(self.InviteGroups) do
 		if vInviteGroup ~= self then
-			self:RemoveInviteGroup(vInviteGroup, self.MembersByName)
+			self:SubtractInviteGroup(vInviteGroup, self.MembersByName)
 		end
 	end
 	
@@ -808,14 +850,14 @@ function GroupCalendar._OthersInviteGroup:Rebuild()
 	end
 end
 
-function GroupCalendar._OthersInviteGroup:RemoveInviteGroup(pInviteGroup, pMembers)
+function GroupCalendar._OthersInviteGroup:SubtractInviteGroup(pInviteGroup, pMembers)
 	local vNumMembers = pInviteGroup:GetNumMembers()
 
 	for vIndex = 1, vNumMembers do
 		local vMemberGroup, vMemberInfo = pInviteGroup:GetIndexedMember(vIndex)
 		
 		if vMemberGroup then
-			self:RemoveInviteGroup(vMemberGroup, pMembers)
+			self:SubtractInviteGroup(vMemberGroup, pMembers)
 		elseif vMemberInfo.Name then
 			pMembers[vMemberInfo.Name] = nil
 		end
