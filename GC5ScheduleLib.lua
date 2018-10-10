@@ -238,13 +238,10 @@ function GroupCalendar._Calendar:HasDayEvents(pMonth, pDay, pYear)
 	SetCVar("calendarShowLockouts", 1)
 	
 	for vEventIndex = 1, vNumEvents do
-		local vTitle, vHour, vMinute,
-		      vCalendarType, vSequenceType, vEventType,
-		      vTextureID, vModStatus, vInviteStatus, vInvitedBy,
-		      vDifficulty, vInviteType, vSequenceIndex, vNumSequenceDays, vDifficultyName = GroupCalendar.WoWCalendar:GetDayEvent(vMonthOffset, pDay, vEventIndex)
+		local event = GroupCalendar.WoWCalendar:GetDayEvent(vMonthOffset, pDay, vEventIndex)
 		
-		if (self.CalendarID == GroupCalendar._CalendarDay.cBlizzardCalendarIDs[vCalendarType])
-		or (self.CalendarID ~= "BLIZZARD" and not GroupCalendar._CalendarDay.cBlizzardCalendarIDs[vCalendarType]) then
+		if (self.CalendarID == GroupCalendar._CalendarDay.cBlizzardCalendarIDs[event.calendarType])
+		or (self.CalendarID ~= "BLIZZARD" and not GroupCalendar._CalendarDay.cBlizzardCalendarIDs[event.calendarType]) then
 			return true
 		end
 	end
@@ -1657,136 +1654,136 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 		GroupCalendar:DebugMessage(NORMAL_FONT_COLOR_CODE.."RefreshAttendance, MinLevel=%s", tostring(self.MinLevel))
 	end
 	
-	local vChanged
+	local changed
 	
 	if not self.Attendance then
 		self.Attendance = {}
 	else
-		for vName, vInfo in pairs(self.Attendance) do
-			vInfo.Unused = true
+		for name, info in pairs(self.Attendance) do
+			info.Unused = true
 		end
 	end
 	
-	local inviteIndex = 1
-	local invite = GroupCalendar.WoWCalendar:EventGetInvite(inviteIndex)
-	while invite ~= nil do
-		local responseDate, responseTime
-		local responseTime = GroupCalendar.WoWCalendar:EventGetInviteResponseTime(inviteIndex)
+	self.NumInvites = GroupCalendar.WoWCalendar:GetNumInvites() or 0
+	if GroupCalendar.Debug.invites then
+		GroupCalendar:DebugMessage("NumInvites=%s", tostring(self.NumInvites))
+	end
+	for inviteIndex = 1, self.NumInvites do
+		local invite = GroupCalendar.WoWCalendar:EventGetInvite(inviteIndex)
+		local inviteResponseTime = GroupCalendar.WoWCalendar:EventGetInviteResponseTime(inviteIndex)
 		
-		if vYear and vYear ~= 0 then
-			vResponseDate = GroupCalendar.DateLib:ConvertMDYToDate(vMonth, vDay, vYear)
-			vResponseTime = GroupCalendar.DateLib:ConvertHMToTime(vHour, vMinute)
+		if GroupCalendar.Debug.invites then
+			GroupCalendar:DebugMessage("Invite #%s for %s", tostring(inviteIndex), tostring(invite.name))
+		end
+
+		local responseDate, responseTime
+		if inviteResponseTime then
+			responseDate = GroupCalendar.DateLib:ConvertMDYToDate(inviteResponseTime.month, inviteResponseTime.monthDay, inviteResponseTime.year)
+			responseTime = GroupCalendar.DateLib:ConvertHMToTime(inviteResponseTime.hour, inviteResponseTime.minute)
 		end
 		
-		local vInfo = self.Attendance[vName or ""]
-		if not vName then
+		local info = self.Attendance[invite.name or ""]
+		if not invite.name then
 			-- The server didn't respond, probably laggy
-		elseif not vInfo then
+		elseif not info then
 			-- Use the current date/time if no stamp is found
 			
 			if not vResponseDate
-			and (vInviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-			  or vInviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-			  or vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-			  or vInviteStatus == CALENDAR_INVITESTATUS_STANDBY
-			  or vInviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP) then
+			and (invite.inviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+			  or invite.inviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+			  or invite.inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+			  or invite.inviteStatus == CALENDAR_INVITESTATUS_STANDBY
+			  or invite.inviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP) then
 				vResponseDate, vResponseTime = GroupCalendar.DateLib:GetServerDateTime()
 			end
 			
 			-- Create the new record
 			
-			vInfo =
+			info =
 			{
-				Name = vName,
-				Level = vLevel,
-				ClassName = vClassName,
-				ClassID = vClassFileName,
-				RoleCode = GroupCalendar:GetPlayerDefaultRoleCode(vName, vClassFileName),
-				InviteStatus = vInviteStatus,
-				ModStatus = vModStatus,
+				Name = invite.name,
+				Level = invite.level,
+				ClassName = invite.className,
+				ClassID = invite.classFilename,
+				RoleCode = GroupCalendar:GetPlayerDefaultRoleCode(invite.name, invite.classFilename),
+				InviteStatus = invite.inviteStatus,
+				ModStatus = invite.modStatus,
 				InviteIsMine = vInviteIsMine,
-				ResponseDate = vResponseDate,
-				ResponseTime = vResponseTime,
+				ResponseDate = responseDate,
+				ResponseTime = responseTime,
 			}
 			
-			self.Attendance[vName] = vInfo
-			vChanged = true
+			self.Attendance[invite.name] = info
+			changed = true
 		else
-			vInfo.Unused = nil
+			info.Unused = nil
 			
-			if vInfo.Name ~= vName then
-				vInfo.Name = vName
-				vChanged = true
+			if info.Name ~= invite.name then
+				info.Name = invite.name
+				changed = true
 			end
 			
-			if vInfo.Level ~= vLevel then
-				vInfo.Level = vLevel
-				vChanged = true
+			if info.Level ~= invite.level then
+				info.Level = invite.level
+				changed = true
 			end
 			
-			if vInfo.ClassName ~= vClassName then
-				vInfo.ClassName = vClassName
-				vChanged = true
+			if info.ClassName ~= invite.className then
+				info.ClassName = invite.className
+				changed = true
 			end
 			
-			if vInfo.ClassID ~= vClassFileName then
-				vInfo.ClassID = vClassFileName
-				vChanged = true
+			if info.ClassID ~= invite.classFilename then
+				info.ClassID = invite.classFilename
+				changed = true
 			end
 			
-			if vInfo.InviteStatus ~= vInviteStatus then
-				vInfo.InviteStatus = vInviteStatus
-				vChanged = true
+			if info.InviteStatus ~= invite.inviteStatus then
+				info.InviteStatus = invite.inviteStatus
+				changed = true
 			end
 			
-			if vInfo.ModStatus ~= vModStatus then
-				vInfo.ModStatus = vModStatus
-				vChanged = true
+			if info.ModStatus ~= invite.modStatus then
+				info.ModStatus = invite.modStatus
+				changed = true
 			end
 			
-			if vInfo.InviteIsMine ~= vInviteIsMine then
-				vInfo.InviteIsMine = vInviteIsMine
-				vChanged = true
+			if info.InviteIsMine ~= invite.inviteIsMine then
+				info.InviteIsMine = invite.inviteIsMine
+				changed = true
 			end
 			
-			if not vResponseDate then
-				if not vInfo.ResponseDate
-				and (vInviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-				  or vInviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-				  or vInviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-				  or vInviteStatus == CALENDAR_INVITESTATUS_STANDBY
-				  or vInviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP) then
-					vInfo.ResponseDate, vInfo.ResponseTime = GroupCalendar.DateLib:GetServerDateTime()
-					vChanged = true
+			if not responseDate then
+				if not info.ResponseDate
+				and (invite.inviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+				  or invite.inviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+				  or invite.inviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+				  or invite.inviteStatus == CALENDAR_INVITESTATUS_STANDBY
+				  or invite.inviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP) then
+					info.ResponseDate, info.ResponseTime = GroupCalendar.DateLib:GetServerDateTime()
+					changed = true
 				end
 			
-			elseif vInfo.ResponseDate ~= vResponseDate
-			or vInfo.ResponseTime ~= vResponseTime then
-				vInfo.ResponseDate = vResponseDate
-				vInfo.ResponseTime = vResponseTime
+			elseif info.ResponseDate ~= responseDate
+			or info.ResponseTime ~= responseTime then
+				info.ResponseDate = responseDate
+				info.ResponseTime = responseTime
 				
-				vChanged = true
+				changed = true
 			end
 		end
-		
-		-- Next
-		inviteIndex = inviteIndex + 1
-		invite = GroupCalendar.WoWCalendar:EventGetInvite(inviteIndex)
-
-	end -- while invite
+	end -- for inviteIndex
 	
-	self.NumInvites = inviteIndex - 1
-	
-	for vName, vInfo in pairs(self.Attendance) do
-		if vInfo.Unused then
-			self.Attendance[vName] = nil
-			vChanged = true
+	for name, info in pairs(self.Attendance) do
+		if info.Unused then
+			self.Attendance[name] = nil
+			changed = true
 		end
 	end
 	
 	self.CacheUpdateDate, self.CacheUpdateTime = GroupCalendar.DateLib:GetServerDateTime()
 	
-	if vChanged then
+	if changed then
 		if GroupCalendar.Debug.invites then
 			GroupCalendar:DebugMessage(NORMAL_FONT_COLOR_CODE.."Sending INVITES_CHANGED, MinLevel=%s", tostring(self.MinLevel))
 		end
@@ -1810,7 +1807,7 @@ function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
 		end
 	end
 	
-	return vChanged
+	return changed
 end
 
 function GroupCalendar._APIEventMethods:MassInvite(pMinLevel, pMaxLevel, pMinRank)
@@ -1902,14 +1899,14 @@ function GroupCalendar._APIEventMethods:CheckCanSendInvite()
 	self:CheckDesiredAttendance()
 end
 
-function GroupCalendar._APIEventMethods:FindInviteByName(pName)
-	local vNumInvites = GroupCalendar.WoWCalendar:EventGetNumInvites()
+function GroupCalendar._APIEventMethods:FindInviteByName(name)
+	local numInvites = GroupCalendar.WoWCalendar:GetNumInvites()
 	
-	for vIndex = 1, vNumInvites do
-		local vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = GroupCalendar.WoWCalendar:EventGetInvite(vIndex)
+	for index = 1, numInvites do
+		local invite = GroupCalendar.WoWCalendar:EventGetInvite(index)
 		
-		if vName == pName then
-			return vIndex, vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine
+		if invite.name == name then
+			return index, invite
 		end
 	end
 end
@@ -2055,28 +2052,28 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 	while self.DesiredAttendance ~= nil do
 		-- Remove unwanted players
 		
-		for vName, vInfo in pairs(self.Attendance) do
+		for name, info in pairs(self.Attendance) do
 			if not self:ReadyToContinueInvites() then
 				return
 			end
 			
-			if not self.DesiredAttendance[vName] then
-				GroupCalendar.BroadcastLib:Broadcast(self, "INVITE_QUEUE_UPDATE", string.format("Removing %s", vName))
+			if not self.DesiredAttendance[name] then
+				GroupCalendar.BroadcastLib:Broadcast(self, "INVITE_QUEUE_UPDATE", string.format("Removing %s", name))
 				
-				local vIndex, vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = self:FindInviteByName(vName)
+				local index, invite = self:FindInviteByName(name)
 				
-				assert(vIndex ~= nil)
-				assert(vModStatus ~= "CREATOR")
+				assert(index ~= nil)
+				assert(invite.modStatus ~= "CREATOR")
 				
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("Calendar.EventRemoveInvite(%s)", vName)
+					GroupCalendar:DebugMessage("Calendar.EventRemoveInvite(%s)", name)
 				end
 				
 				self:WaitForEvent("CALENDAR_UPDATE_INVITE_LIST")
-				GroupCalendar.WoWCalendar:EventRemoveInvite(vIndex)
+				GroupCalendar.WoWCalendar:EventRemoveInvite(index)
 				
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("Calendar.EventRemoveInvite(%s): Done", vName)
+					GroupCalendar:DebugMessage("Calendar.EventRemoveInvite(%s): Done", name)
 				end
 			end
 		end
@@ -2087,16 +2084,16 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 			return
 		end
 		
-		for vName, vInfo in pairs(self.DesiredAttendance) do
-			GroupCalendar.BroadcastLib:Broadcast(self, "INVITE_QUEUE_UPDATE", string.format(GroupCalendar.cAddingInviteFormat, vName))
+		for name, info in pairs(self.DesiredAttendance) do
+			GroupCalendar.BroadcastLib:Broadcast(self, "INVITE_QUEUE_UPDATE", string.format(GroupCalendar.cAddingInviteFormat, name))
 			
-			if not self.Attendance[vName] then
+			if not self.Attendance[name] then
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("Calendar.EventInvite(%s)", vName)
+					GroupCalendar:DebugMessage("Calendar.EventInvite(%s)", name)
 				end
 				
 				self:WaitForEvent("CALENDAR_UPDATE_INVITE_LIST")
-				GroupCalendar.WoWCalendar:EventInvite(vName)
+				GroupCalendar.WoWCalendar:EventInvite(name)
 			end
 			
 			if not self:ReadyToContinueInvites() then
@@ -2110,30 +2107,30 @@ function GroupCalendar._APIEventMethods:CheckDesiredAttendance_Body()
 			return
 		end
 		
-		for vName, vInfo in pairs(self.DesiredAttendance) do
-			local vCurrentInfo = self.Attendance[vName]
+		for name, info in pairs(self.DesiredAttendance) do
+			local currentInfo = self.Attendance[name]
 			
-			if (vCurrentInfo.ModStatus ~= "CREATOR" and vCurrentInfo.ModStatus ~= vInfo.ModStatus)
-			or vCurrentInfo.InviteStatus ~= vInfo.InviteStatus then
-				GroupCalendar.BroadcastLib:Broadcast(self, "INVITE_QUEUE_UPDATE", string.format("Updating %s", vName))
+			if (currentInfo.ModStatus ~= "CREATOR" and currentInfo.ModStatus ~= info.ModStatus)
+			or currentInfo.InviteStatus ~= info.InviteStatus then
+				GroupCalendar.BroadcastLib:Broadcast(self, "INVITE_QUEUE_UPDATE", string.format("Updating %s", name))
 				
-				local vIndex, vName, vLevel, vClassName, vClassFileName, vInviteStatus, vModStatus, vInviteIsMine = self:FindInviteByName(vName)
+				local index, invite = self:FindInviteByName(name)
 				
-				assert(vIndex ~= nil)
+				assert(index ~= nil)
 				
 				if GroupCalendar.Debug.invites then
-					GroupCalendar:DebugMessage("CalendarEventSetStatus/Moderator(%s): Index=%s, Status=%s", vName, tostring(vIndex), tostring(vInfo.InviteStatus))
+					GroupCalendar:DebugMessage("CalendarEventSetStatus/Moderator(%s): Index=%s, Status=%s", name, tostring(index), tostring(info.InviteStatus))
 				end
 				
-				if vCurrentInfo.InviteStatus ~= vInfo.InviteStatus then
-					GroupCalendar.WoWCalendar:EventSetStatus(vIndex, vInfo.InviteStatus)
+				if currentInfo.InviteStatus ~= info.InviteStatus then
+					GroupCalendar.WoWCalendar:EventSetStatus(index, info.InviteStatus)
 				end
 				
-				if vCurrentInfo.ModStatus ~= "CREATOR" and vCurrentInfo.ModStatus ~= vInfo.ModStatus then
-					if vInfo.ModStatus == "MODERATOR" then
-						GroupCalendar.WoWCalendar:EventSetModerator(vIndex)
+				if currentInfo.ModStatus ~= "CREATOR" and currentInfo.ModStatus ~= info.ModStatus then
+					if info.ModStatus == "MODERATOR" then
+						GroupCalendar.WoWCalendar:EventSetModerator(index)
 					else
-						GroupCalendar.WoWCalendar:EventClearModerator(vIndex)
+						GroupCalendar.WoWCalendar:EventClearModerator(index)
 					end
 				end
 			end

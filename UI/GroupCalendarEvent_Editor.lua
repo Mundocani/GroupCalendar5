@@ -580,7 +580,7 @@ function GroupCalendar.UI._EventEditor:AddEventGroupItems(pMenu, pEventGroupID)
 	local vEventTypes = GroupCalendar.EventTypes[pEventGroupID]
 	
 	for vIndex, vEventItem in ipairs(vEventTypes.Events) do
-		pMenu:AddNormalItem(vEventItem.name or "nil", vEventItem.id or 0)
+		pMenu:AddItemWithValue(vEventItem.name or "nil", vEventItem.id or 0)
 	end
 end
 
@@ -744,14 +744,14 @@ function GroupCalendar.UI._EventEditor:DifficultyMenuFunc(pMenu, pMenuID, pLevel
 		for i, difficultyInfo in ipairs(eventTex.difficulties) do
 			if not alreadyAddedDifficulties[difficultyInfo.difficultyName] then
 				local checked = textureIndex == difficultyInfo.textureIndex or nil
-				pMenu:AddNormalItem(difficultyInfo.difficultyName, difficultyInfo.textureIndex, nil, checked);
+				pMenu:AddItemWithValue(difficultyInfo.difficultyName, difficultyInfo.textureIndex, nil, checked);
 				alreadyAddedDifficulties[difficultyInfo.difficultyName] = true;
 			end
 		end
 	end
 end
 
-function GroupCalendar.UI._EventEditor:DurationMenuFunc(pMenu, pMenuID, pLevel)
+function GroupCalendar.UI._EventEditor:DurationMenuFunc(menu, menuID)
 	local vDurations = {15, 30, 60, 90, 120, 150, 180, 210, 240, 300, 360}
 
 	for _, vDuration in ipairs(vDurations) do
@@ -778,7 +778,7 @@ function GroupCalendar.UI._EventEditor:DurationMenuFunc(pMenu, pMenuID, pLevel)
 			end
 		end
 		
-		pMenu:AddNormalItem(vText, vDuration)
+		menu:AddItemWithValue(vText, vDuration)
 	end
 end
 
@@ -786,17 +786,17 @@ function GroupCalendar.UI._EventEditor:RepeatMenuFunc(pMenu, pMenuID, pLevel)
 	local vOptions = {C_Calendar.EventGetRepeatOptions()}
 	
 	for vOptionID, vOptionTitle in ipairs(vOptions) do
-		pMenu:AddNormalItem(vOptionTitle, vOptionID)
+		pMenu:AddItemWithValue(vOptionTitle, vOptionID)
 	end
 end
 
 function GroupCalendar.UI._EventEditor:LockoutMenuFunc(pMenu, pMenuID, pLevel)
-	pMenu:AddNormalItem(OFF, "OFF")
-	pMenu:AddNormalItem(GroupCalendar.cLockout0, 0)
-	pMenu:AddNormalItem(GroupCalendar.cLockout15, 15)
-	pMenu:AddNormalItem(GroupCalendar.cLockout30, 30)
-	pMenu:AddNormalItem(GroupCalendar.cLockout60, 60)
-	pMenu:AddNormalItem(GroupCalendar.cLockout120, 120)
-	pMenu:AddNormalItem(GroupCalendar.cLockout180, 180)
-	pMenu:AddNormalItem(GroupCalendar.cLockout1440, 1440)
+	pMenu:AddItemWithValue(OFF, "OFF")
+	pMenu:AddItemWithValue(GroupCalendar.cLockout0, 0)
+	pMenu:AddItemWithValue(GroupCalendar.cLockout15, 15)
+	pMenu:AddItemWithValue(GroupCalendar.cLockout30, 30)
+	pMenu:AddItemWithValue(GroupCalendar.cLockout60, 60)
+	pMenu:AddItemWithValue(GroupCalendar.cLockout120, 120)
+	pMenu:AddItemWithValue(GroupCalendar.cLockout180, 180)
+	pMenu:AddItemWithValue(GroupCalendar.cLockout1440, 1440)
 end

@@ -1343,6 +1343,12 @@ function Addon.UIElementsLib._DropDownMenuItems:AddToggleWithIcon(title, icon, c
 	return item
 end
 
+function Addon.UIElementsLib._DropDownMenuItems:AddItemWithValue(title, value, options)
+	local item = self:AddToggle(title, nil, nil, nil, options)
+	item.value = value
+	return item
+end
+
 ----------------------------------------
 Addon.UIElementsLib._DropDownMenu = {}
 ----------------------------------------

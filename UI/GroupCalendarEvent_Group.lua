@@ -864,7 +864,7 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 		local vIsCreator = vMemberInfo.Name == self.Event.Creator
 		
 		pMenu:AddCategoryItem(vMemberInfo.Name)
-		pMenu:AddNormalItem(REMOVE, "PLAYER_REMOVE", nil, nil, not vCanSendInvite)
+		pMenu:AddItemWithValue(REMOVE, "PLAYER_REMOVE", nil, nil, not vCanSendInvite)
 		
 		if vAttendanceInfo then
 			pMenu:AddCategoryItem(STATUS)
@@ -872,60 +872,60 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 			-- Invited status can't be set, so only display it if that's their current status
 			
 			if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
-				pMenu:AddNormalItem(CALENDAR_STATUS_INVITED, "STATUS_INVITED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_INVITED, "STATUS_INVITED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_INVITED, not vCanSendInvite)
 			end
 			
 			if vIsGuildEvent then
 				-- Accepted status can't be set, so only display it if that's their current status
 				
 				if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED then
-					pMenu:AddNormalItem(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
+					pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
 				end
 				
 				-- Signed up status can't be set, so only display it if that's their current status
 				
 				if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP then
-					pMenu:AddNormalItem(CALENDAR_STATUS_SIGNEDUP, "STATUS_SIGNEDUP", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP, not vCanSendInvite)
+					pMenu:AddItemWithValue(CALENDAR_STATUS_SIGNEDUP, "STATUS_SIGNEDUP", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP, not vCanSendInvite)
 				end
 				
-				pMenu:AddNormalItem(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
 				
 				-- Declined status can't be set, so only display it if that's their current status
 				
 				if vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED then
-					pMenu:AddNormalItem(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
+					pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
 				end
 			else
-				pMenu:AddNormalItem(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
-				pMenu:AddNormalItem(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
-				pMenu:AddNormalItem(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_ACCEPTED, "STATUS_ACCEPTED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_TENTATIVE, "STATUS_TENTATIVE", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE, not vCanSendInvite)
+				pMenu:AddItemWithValue(CALENDAR_STATUS_DECLINED, "STATUS_DECLINED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_DECLINED, not vCanSendInvite)
 			end
 			
-			pMenu:AddNormalItem(CALENDAR_STATUS_CONFIRMED, "STATUS_CONFIRMED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED, not vCanSendInvite)
-			pMenu:AddNormalItem(CALENDAR_STATUS_STANDBY, "STATUS_STANDBY", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY, not vCanSendInvite)
-			pMenu:AddNormalItem(CALENDAR_STATUS_OUT, "STATUS_OUT", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_OUT, not vCanSendInvite)
+			pMenu:AddItemWithValue(CALENDAR_STATUS_CONFIRMED, "STATUS_CONFIRMED", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED, not vCanSendInvite)
+			pMenu:AddItemWithValue(CALENDAR_STATUS_STANDBY, "STATUS_STANDBY", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_STANDBY, not vCanSendInvite)
+			pMenu:AddItemWithValue(CALENDAR_STATUS_OUT, "STATUS_OUT", nil, vAttendanceInfo.InviteStatus == CALENDAR_INVITESTATUS_OUT, not vCanSendInvite)
 		end
 		
 		pMenu:AddDivider()
-		pMenu:AddNormalItem(CALENDAR_INVITELIST_SETMODERATOR, "MODERATOR", nil, vAttendanceInfo and (vAttendanceInfo.ModStatus == "MODERATOR" or vAttendanceInfo.ModStatus == "CREATOR"), (vAttendanceInfo and vAttendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
+		pMenu:AddItemWithValue(CALENDAR_INVITELIST_SETMODERATOR, "MODERATOR", nil, vAttendanceInfo and (vAttendanceInfo.ModStatus == "MODERATOR" or vAttendanceInfo.ModStatus == "CREATOR"), (vAttendanceInfo and vAttendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
 		
 		local vInRaid = vPlayerInfo ~= nil
 		
 		pMenu:AddCategoryItem(VOICE_CHAT_PARTY_RAID)
-		pMenu:AddNormalItem(CALENDAR_INVITELIST_INVITETORAID, "GROUP_INVITE", nil, nil, vInRaid or vSelfPlayerInfo.Rank == 0)
-		pMenu:AddNormalItem(REMOVE, "GROUP_REMOVE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= vPlayerInfo.Rank)
-		pMenu:AddNormalItem(PARTY_PROMOTE, "GROUP_LEADER", nil, nil, not vInRaid or vPlayerInfo.Rank == 2 or vSelfPlayerInfo.Rank ~= 2)
-		pMenu:AddNormalItem(SET_RAID_ASSISTANT, "GROUP_PROMOTE", nil, nil, not vInRaid or vPlayerInfo.Rank > 0 or vSelfPlayerInfo.Rank ~= 2)
-		pMenu:AddNormalItem(DEMOTE, "GROUP_DEMOTE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= vPlayerInfo.Rank or vPlayerInfo.Rank == 0)
+		pMenu:AddItemWithValue(CALENDAR_INVITELIST_INVITETORAID, "GROUP_INVITE", nil, nil, vInRaid or vSelfPlayerInfo.Rank == 0)
+		pMenu:AddItemWithValue(REMOVE, "GROUP_REMOVE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= vPlayerInfo.Rank)
+		pMenu:AddItemWithValue(PARTY_PROMOTE, "GROUP_LEADER", nil, nil, not vInRaid or vPlayerInfo.Rank == 2 or vSelfPlayerInfo.Rank ~= 2)
+		pMenu:AddItemWithValue(SET_RAID_ASSISTANT, "GROUP_PROMOTE", nil, nil, not vInRaid or vPlayerInfo.Rank > 0 or vSelfPlayerInfo.Rank ~= 2)
+		pMenu:AddItemWithValue(DEMOTE, "GROUP_DEMOTE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= vPlayerInfo.Rank or vPlayerInfo.Rank == 0)
 		
 		local vClassID = (vAttendanceInfo and vAttendanceInfo.ClassID) or vPlayerInfo.ClassID
 		local vRoleCode = (vAttendanceInfo and vAttendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vMemberInfo.Name, vClassID)
 		
 		pMenu:AddCategoryItem("Role")
-		pMenu:AddNormalItem(GroupCalendar.cHRole, "ROLE_H", nil, vRoleCode == "H")
-		pMenu:AddNormalItem(GroupCalendar.cTRole, "ROLE_T", nil, vRoleCode == "T")
-		pMenu:AddNormalItem(GroupCalendar.cRRole, "ROLE_R", nil, vRoleCode == "R")
-		pMenu:AddNormalItem(GroupCalendar.cMRole, "ROLE_M", nil, vRoleCode == "M")
+		pMenu:AddItemWithValue(GroupCalendar.cHRole, "ROLE_H", nil, vRoleCode == "H")
+		pMenu:AddItemWithValue(GroupCalendar.cTRole, "ROLE_T", nil, vRoleCode == "T")
+		pMenu:AddItemWithValue(GroupCalendar.cRRole, "ROLE_R", nil, vRoleCode == "R")
+		pMenu:AddItemWithValue(GroupCalendar.cMRole, "ROLE_M", nil, vRoleCode == "M")
 	end
 end
 
@@ -1001,13 +1001,13 @@ end
 
 function GroupCalendar.UI._EventGroup:ViewMenuFunc(pMenu, pMenuID)
 	pMenu:AddCategoryItem(GroupCalendar.cViewGroupBy)
-	pMenu:AddNormalItem(self.GroupByTitle.ROLE, "GROUP_ROLE", nil, self.GroupBy == "ROLE")
-	pMenu:AddNormalItem(self.GroupByTitle.CLASS, "GROUP_CLASS", nil, self.GroupBy == "CLASS")
-	pMenu:AddNormalItem(self.GroupByTitle.STATUS, "GROUP_STATUS", nil, self.GroupBy == "STATUS")
+	pMenu:AddItemWithValue(self.GroupByTitle.ROLE, "GROUP_ROLE", nil, self.GroupBy == "ROLE")
+	pMenu:AddItemWithValue(self.GroupByTitle.CLASS, "GROUP_CLASS", nil, self.GroupBy == "CLASS")
+	pMenu:AddItemWithValue(self.GroupByTitle.STATUS, "GROUP_STATUS", nil, self.GroupBy == "STATUS")
 	pMenu:AddCategoryItem(GroupCalendar.cViewSortBy)
-	pMenu:AddNormalItem(self.SortByTitle.DATE, "SORT_DATE", nil, self.SortBy == "DATE")
-	pMenu:AddNormalItem(self.SortByTitle.RANK, "SORT_RANK", nil, self.SortBy == "RANK")
-	pMenu:AddNormalItem(self.SortByTitle.NAME, "SORT_NAME", nil, self.SortBy == "NAME")
+	pMenu:AddItemWithValue(self.SortByTitle.DATE, "SORT_DATE", nil, self.SortBy == "DATE")
+	pMenu:AddItemWithValue(self.SortByTitle.RANK, "SORT_RANK", nil, self.SortBy == "RANK")
+	pMenu:AddItemWithValue(self.SortByTitle.NAME, "SORT_NAME", nil, self.SortBy == "NAME")
 end
 
 function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
