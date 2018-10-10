@@ -52,9 +52,16 @@ function GroupCalendar.UI._RoleLimitsDialog:Open(pLimits, pTitle, pShowPriority,
 		
 		self:SetHeight(self.FullHeight - self.PriorityFrame.FullHeight)
 		
-		self.PriorityMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self.PriorityFrame, function (pMenu, pValue, pLevel)
-			pMenu:AddNormalItem(GroupCalendar.cPriorityDate, "DATE")
-			pMenu:AddNormalItem(GroupCalendar.cPriorityRank, "RANK")
+		self.PriorityMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self.PriorityFrame, function (menu)
+			menu:AddSingleChoiceGroup(nil, {
+				{title = GroupCalendar.cPriorityDate, value = "DATE"},
+				{title = GroupCalendar.cPriorityRank, value = "RANK"}
+			}, function ()
+				return self.PriorityMenu.selectedValue
+			end,
+			function (value)
+				self.PriorityMenu:SetSelectedValue(value)
+			end)
 		end, 130)
 		self.PriorityMenu:SetTitle(GroupCalendar.cPriorityLabel)
 		self.PriorityMenu:SetPoint("TOPLEFT", self.PriorityFrame, "TOPLEFT", 100, 0)
@@ -97,18 +104,18 @@ function GroupCalendar.UI._RoleLimitsDialog:Open(pLimits, pTitle, pShowPriority,
 		
 		-- Party size
 		
-		self.MaxPartySizeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (pMenu, pValue, pLevel)
-			pMenu:AddNormalItem(GroupCalendar.cNoMaximum, 0)
-			pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("5"), 5)
-			pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("10"), 10)
-			pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("15"), 15)
-			pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("20"), 20)
-			pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("25"), 25)
-			pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("40"), 40)
+		self.MaxPartySizeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (menu)
+			menu:AddItemWithValue(GroupCalendar.cNoMaximum, 0)
+			menu:AddItemWithValue(GroupCalendar.cPartySizeFormat:format("5"), 5)
+			menu:AddItemWithValue(GroupCalendar.cPartySizeFormat:format("10"), 10)
+			menu:AddItemWithValue(GroupCalendar.cPartySizeFormat:format("15"), 15)
+			menu:AddItemWithValue(GroupCalendar.cPartySizeFormat:format("20"), 20)
+			menu:AddItemWithValue(GroupCalendar.cPartySizeFormat:format("25"), 25)
+			menu:AddItemWithValue(GroupCalendar.cPartySizeFormat:format("40"), 40)
 		end, 130)
 		self.MaxPartySizeMenu:SetTitle(GroupCalendar.cMaxPartySizeLabel)
 		self.MaxPartySizeMenu:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 170, 20)
-		self.MaxPartySizeMenu.ItemClickedFunc = function (pMenu, pValue)
+		self.MaxPartySizeMenu.DidSelectItemWithValue = function (pMenu, pValue)
 			if pValue > 0 then
 				self:UpdateFields(GroupCalendar.DefaultLimits[pValue])
 			end
@@ -690,9 +697,9 @@ function GroupCalendar.UI._ClassLimitsDialog:Initialize()
 		self:SetHeight(self.FullHeight)
 	end)
 	
-	self.PriorityMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (pMenu, pValue, pLevel)
-		pMenu:AddNormalItem(GroupCalendar.cPriorityDate, "DATE")
-		pMenu:AddNormalItem(GroupCalendar.cPriorityRank, "RANK")
+	self.PriorityMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (menu)
+		menu:AddItemWithValue(GroupCalendar.cPriorityDate, "DATE")
+		menu:AddItemWithValue(GroupCalendar.cPriorityRank, "RANK")
 	end, 130)
 	self.PriorityMenu:SetTitle(GroupCalendar.cPriorityLabel)
 	self.PriorityMenu:SetPoint("TOPLEFT", self.PriorityFrame, "TOPLEFT", 100, 20)
@@ -749,14 +756,19 @@ function GroupCalendar.UI._ClassLimitsDialog:Initialize()
 	
 	-- Party size
 	
-	self.MaxPartySizeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (pMenu, pValue, pLevel)
-		pMenu:AddNormalItem(GroupCalendar.cNoMaximum, 0)
-		pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("5"), 5)
-		pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("10"), 10)
-		pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("15"), 15)
-		pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("20"), 20)
-		pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("25"), 25)
-		pMenu:AddNormalItem(GroupCalendar.cPartySizeFormat:format("40"), 40)
+	self.MaxPartySizeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (menu)
+		menu:AddSingleChoiceGroup(nil, {
+			{title = GroupCalendar.cNoMaximum, value = 0},
+			{title = GroupCalendar.cPartySizeFormat:format("5"), value = 5},
+			{title = GroupCalendar.cPartySizeFormat:format("10"), value = 10},
+			{title = GroupCalendar.cPartySizeFormat:format("15"), value = 15},
+			{title = GroupCalendar.cPartySizeFormat:format("20"), value = 20},
+			{title = GroupCalendar.cPartySizeFormat:format("25"), value = 25},
+			{title = GroupCalendar.cPartySizeFormat:format("40"), value = 40}
+		}, function ()
+
+		end, function ()
+		end)
 	end, 130)
 	self.MaxPartySizeMenu:SetTitle(GroupCalendar.cMaxPartySizeLabel)
 	self.MaxPartySizeMenu:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 150, 20)

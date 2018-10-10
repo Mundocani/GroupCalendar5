@@ -23,6 +23,8 @@ MC2AddonLib.lua
 utf8data.lua
 utf8.lua
 
+LibDropdown-1.0.lua
+
 GroupCalendar_Strings.lua
 GroupCalendar_Strings_cn.lua
 GroupCalendar_Strings_de.lua

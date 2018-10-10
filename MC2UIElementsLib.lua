@@ -1321,8 +1321,10 @@ function Addon.UIElementsLib._DropDownMenuItems:AddToggle(title, get, set, disab
 		name = title,
 		type = "toggle",
 		get = get,
-		set = function (...)
-			set(...)
+		set = function (item, ...)
+			if set then
+				set(item, ...)
+			end
 			if self.closeFunc then
 				self.closeFunc()
 			end
@@ -1341,19 +1343,59 @@ function Addon.UIElementsLib._DropDownMenuItems:AddToggleWithIcon(title, icon, c
 end
 
 function Addon.UIElementsLib._DropDownMenuItems:AddItemWithValue(title, value, options)
-	local item = self:AddToggle(title, nil, nil, nil, options)
+	local item = self:AddToggle(
+		title,
+
+		-- get
+		function (item)
+			return self.selectedValue == value
+		end,
+
+		-- set
+		function (item)
+			self:DidSelectItemWithValue(value)
+		end,
+
+		nil, -- disabled
+		options
+	)
+
 	item.value = value
 	return item
 end
 
+function Addon.UIElementsLib._DropDownMenuItems:GetItemWithValue(value)
+	for index, item in ipairs(self.args) do
+		if item.value == value then
+			return item, index
+		end
+	end
+end
+
+function Addon.UIElementsLib._DropDownMenuItems:GetTitleForValue(value)
+	local item = self:GetItemWithValue(value)
+	if item then
+		return item.name
+	end
+end
+
 function Addon.UIElementsLib._DropDownMenuItems:AddSingleChoiceGroup(title, items, get, set, disable)
-	self:AddCategoryTitle(title)
+	if title then
+		self:AddCategoryTitle(title)
+	end
 	for index, item in ipairs(items) do
-		self:AddToggle(item.Title, function ()
-			return get() == item.Value
-		end, function (menu, value)
-			set(item.Value)
-		end, disable)
+		local menuItem = self:AddToggle(
+			item.title,
+			-- get
+			function ()
+				return get() == item.value
+			end,
+			-- set
+			function (menu, value)
+				set(item.value)
+			end,
+			disable)
+		menuItem.value = item.value
 	end
 end
 
@@ -1506,23 +1548,33 @@ function Addon.UIElementsLib._DropDownMenuButton:ToggleMenu()
 
 	-- Show the menu
 	self.dropDownMenu = Addon:New(Addon.UIElementsLib._DropDownMenu)
+	self.items.selectedValue = self.selectedValue
 	self.dropDownMenu:Show(self.items, self.point, self.relativeTo, self.relativePoint, self.xOffset, self.yOffset)
+
+	-- Propagate value change messages for menus using the stateful idiom
+	self.items.DidSelectItemWithValue = function (menu, value)
+		self:DidSelectItemWithValue(value)
+	end
 end
 
-function Addon.UIElementsLib._DropDownMenuButton:ItemClicked(pValue)
+function Addon.UIElementsLib._DropDownMenuButton:ItemClicked(value)
 	if self.AutoSelectValue then
-		self:SetSelectedValue(pValue)
+		self:SetSelectedValue(value)
 	end
 	
 	if self.ItemClickedFunc then
-		self:ItemClickedFunc(pValue)
+		self:ItemClickedFunc(value)
 	end
 	
 	CloseDropDownMenus()
 end
 
-function Addon.UIElementsLib._DropDownMenuButton:SetSelectedValue(pValue)
-	self.selectedValue = pValue
+function Addon.UIElementsLib._DropDownMenuButton:SetSelectedValue(value)
+	self.selectedValue = value
+
+	if self.items then
+		self.items.selectedValue = value
+	end
 end
 
 function Addon.UIElementsLib._DropDownMenuButton:GetSelectedValue()
@@ -1591,17 +1643,17 @@ function Addon.UIElementsLib._TitledDropDownMenuButton:SetCurrentValueText(pText
 	self.Text:SetText(pText)
 end
 
-function Addon.UIElementsLib._TitledDropDownMenuButton:SetSelectedValue(pValue)
-	if self.selectedValue == pValue then
+function Addon.UIElementsLib._TitledDropDownMenuButton:SetSelectedValue(value)
+	if self.selectedValue == value then
 		return
 	end
 	
-	self.Inherited.SetSelectedValue(self, pValue)
+	self.Inherited.SetSelectedValue(self, value)
 	
 	self:RefreshItems()
 
-	local vCurrentValueText = self.items:GetNameForValue(pValue) or ""
-	self:SetCurrentValueText(vCurrentValueText)
+	local text = self.items:GetTitleForValue(value) or ""
+	self:SetCurrentValueText(text)
 end
 
 ----------------------------------------

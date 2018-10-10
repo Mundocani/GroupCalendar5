@@ -179,7 +179,7 @@ function GroupCalendar.UI._EventGroup:Initialize()
 	self.AutoSelectButton:SetPoint("TOPLEFT", self.TotalsSection, "TOPLEFT", 15, -6)
 	self.AutoSelectButton:SetScript("OnClick", function ()
 		GroupCalendar.UI.RoleLimitsDialog:SetParent(self)
-		GroupCalendar.UI.RoleLimitsDialog:SetFrameLevel(self:GetFrameLevel() + 30)
+		GroupCalendar.UI.RoleLimitsDialog:SetFrameLevel(self:GetFrameLevel() + 50)
 		GroupCalendar.UI.RoleLimitsDialog:ClearAllPoints()
 		GroupCalendar.UI.RoleLimitsDialog:SetPoint("CENTER", self, "CENTER")
 		GroupCalendar.UI.RoleLimitsDialog:Open(self.AutoSelectLimits or self.Event.Limits, GroupCalendar.cAutoConfirmRoleLimitsTitle, true, function (pLimits)
@@ -1048,9 +1048,9 @@ function GroupCalendar.UI._EventGroup:ViewMenuFunc(menu, menuID)
 
 		-- items
 		{
-			{Title = self.GroupByTitle.ROLE, Value = "ROLE"},
-			{Title = self.GroupByTitle.CLASS, Value = "CLASS"},
-			{Title = self.GroupByTitle.STATUS, Value = "STATUS"},
+			{title = self.GroupByTitle.ROLE, value = "ROLE"},
+			{title = self.GroupByTitle.CLASS, value = "CLASS"},
+			{title = self.GroupByTitle.STATUS, value = "STATUS"},
 		},
 
 		-- get
@@ -1070,9 +1070,9 @@ function GroupCalendar.UI._EventGroup:ViewMenuFunc(menu, menuID)
 
 		-- items
 		{
-			{Title = self.SortByTitle.DATE, Value = "DATE"},
-			{Title = self.SortByTitle.RANK, Value = "RANK"},
-			{Title = self.SortByTitle.NAME, Value = "NAME"},
+			{title = self.SortByTitle.DATE, value = "DATE"},
+			{title = self.SortByTitle.RANK, value = "RANK"},
+			{title = self.SortByTitle.NAME, value = "NAME"},
 		},
 
 		-- get
