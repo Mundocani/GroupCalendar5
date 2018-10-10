@@ -952,6 +952,8 @@ function GroupCalendar._APIEventMethods:SetEvent(pOwnersName, pMonth, pDay, pYea
 	self.SequenceIndex = event.sequenceType
 	self.NumSequenceDays = event.numSequenceDays
 	self.DifficultyName = event.difficultyName
+	self.DontDisplayBanner = event.dontDisplayBanner
+	self.DontDisplayEnd = event.dontDisplayEnd
 
 	self.TitleTag = GroupCalendar.WoWCalendar:EventGetTitleTag()
 	

@@ -115,38 +115,38 @@ function GroupCalendar.UI._DaySidebar:Rebuild()
 	self:Refresh()
 end
 
-function GroupCalendar.CompareEventTimes(pEvent1, pEvent2)
-	if pEvent1.Year < pEvent2.Year then
+function GroupCalendar.CompareEventTimes(event1, event2)
+	if event1.Year < event2.Year then
 		return true
-	elseif pEvent1.Year > pEvent2.Year then
+	elseif event1.Year > event2.Year then
 		return false
 	end
 
-	if pEvent1.Month < pEvent2.Month then
+	if event1.Month < event2.Month then
 		return true
-	elseif pEvent1.Month > pEvent2.Month then
+	elseif event1.Month > event2.Month then
 		return false
 	end
 
-	if pEvent1.Day < pEvent2.Day then
+	if event1.Day < event2.Day then
 		return true
-	elseif pEvent1.Day > pEvent2.Day then
+	elseif event1.Day > event2.Day then
 		return false
 	end
 
-	if (pEvent1.Hour or -1) < (pEvent2.Hour or -1) then
+	if (event1.Hour or 24) < (event2.Hour or 24) then
 		return true
-	elseif (pEvent1.Hour or -1) > (pEvent2.Hour or -1) then
+	elseif (event1.Hour or 24) > (event2.Hour or 24) then
 		return false
 	end
 	
-	if (pEvent1.Minute or 0) < (pEvent2.Minute or 0) then
+	if (event1.Minute or 0) < (event2.Minute or 0) then
 		return true
-	elseif (pEvent1.Minute or 0) > (pEvent2.Minute or 0) then
+	elseif (event1.Minute or 0) > (event2.Minute or 0) then
 		return false
 	end
 	
-	return (pEvent1.Title or "") < (pEvent2.Title or "")
+	return (event1.Title or "") < (event2.Title or "")
 end
 	
 function GroupCalendar.UI._DaySidebar:Refresh()

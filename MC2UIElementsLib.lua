@@ -340,7 +340,6 @@ end
 
 function Addon.UIElementsLib._Tabs:NewTab(title, value)
 	local name = "MC2UIElementsLibTab"..MC2UIElementsLib.TabNameIndex
-	Addon:DebugMessage("Creating tab "..name)
 
 	MC2UIElementsLib.TabNameIndex = MC2UIElementsLib.TabNameIndex + 1
 	
@@ -470,8 +469,6 @@ function Addon.UIElementsLib._TabbedView:Construct(parent, horizOffset, vertOffs
 end
 
 function Addon.UIElementsLib._TabbedView:AddView(frame, title)
-	Addon:DebugMessage("Adding tab "..title)
-
 	-- Add the tab
 	local tab = self.Tabs:NewTab(title, frame)
 
@@ -2090,14 +2087,14 @@ function Addon.UIElementsLib._TimePicker:SetTime(hour, minute)
 		local ampm = "AM"
 		if hour == 0 then
 			displayHour = 12
-		elseif pHour == 12 then
-			displayHour = pHour
+		elseif hour == 12 then
+			displayHour = hour
 			ampm = "PM"
-		elseif pHour > 12 then
-			displayHour = pHour - 12
+		elseif hour > 12 then
+			displayHour = hour - 12
 			ampm = "PM"
 		else
-			displayHour = pHour
+			displayHour = hour
 		end
 		
 		if ampm == "PM" and displayHour > 12 then

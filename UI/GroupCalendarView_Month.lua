@@ -77,12 +77,12 @@ function GroupCalendar.UI._MonthView:Construct(pParent)
 	self.WeekdayTitles = {}
 	self.WeekdaySpacing = 72
 	
-	for vIndex = 1, 7 do
+	for index = 1, 7 do
 		local vTitle = self:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		
-		vTitle:SetPoint("CENTER", self, "TOPLEFT", 65 + (vIndex - 1) * self.WeekdaySpacing, -48)
+		vTitle:SetPoint("CENTER", self, "TOPLEFT", 65 + (index - 1) * self.WeekdaySpacing, -48)
 		
-		self.WeekdayTitles[vIndex] = vTitle
+		self.WeekdayTitles[index] = vTitle
 	end
 	
 	--
@@ -157,8 +157,8 @@ function GroupCalendar.UI._MonthView:AdjustWeekdayTitles()
 		WEEKDAY_SATURDAY,
 	}
 	
-	for vIndex = 1, 7 do
-		self.WeekdayTitles[vIndex]:SetText(vWeekdayNames[(vIndex + (GroupCalendar.Data.StartDay or 1) - 2) % 7 + 1])
+	for index = 1, 7 do
+		self.WeekdayTitles[index]:SetText(vWeekdayNames[(index + (GroupCalendar.Data.StartDay or 1) - 2) % 7 + 1])
 	end
 end
 
@@ -511,17 +511,17 @@ function GroupCalendar._DayFrame:ApplyTheme()
 	end
 	
 	if self.Theme.RandomTile then
-		local vTileTexLeft, vTileTexRight, vTileTexTop, vTileTexBottom
-		local vColumn = math.floor(math.random() * self.Theme.TilesH)
-		local vRow = math.floor(math.random() * self.Theme.TilesV)
+		local tileTexLeft, tileTexRight, tileTexTop, tileTexBottom
+		local column = math.floor(math.random() * self.Theme.TilesH)
+		local row = math.floor(math.random() * self.Theme.TilesV)
 		
-		vTileTexLeft = vColumn / self.Theme.TilesH
-		vTileTexRight = (vColumn + 1) / self.Theme.TilesH
-		vTileTexTop = vRow / self.Theme.TilesV
-		vTileTexBottom = (vRow + 1) / self.Theme.TilesV
+		tileTexLeft = column / self.Theme.TilesH
+		tileTexRight = (column + 1) / self.Theme.TilesH
+		tileTexTop = row / self.Theme.TilesV
+		tileTexBottom = (row + 1) / self.Theme.TilesV
 		
-		self.ForegroundTile:SetTexCoord(vTileTexLeft, vTileTexRight, vTileTexTop, vTileTexBottom)
-		self.BackgroundTile:SetTexCoord(vTileTexLeft, vTileTexRight, vTileTexTop, vTileTexBottom)
+		self.ForegroundTile:SetTexCoord(tileTexLeft, tileTexRight, tileTexTop, tileTexBottom)
+		self.BackgroundTile:SetTexCoord(tileTexLeft, tileTexRight, tileTexTop, tileTexBottom)
 	else
 		self.BackgroundTile:SetTexCoord(
 				(self.Weekday - 1) / 7,
@@ -548,11 +548,11 @@ function GroupCalendar._DayFrame:SetMonthPosition(pWeekday, pWeek)
 	self:ApplyTheme()
 end
 
-function GroupCalendar._DayFrame:SetDogEarIndex(pIndex)
-	local vRow = math.floor(pIndex / 8)
-	local vColumn = math.fmod(pIndex, 8)
+function GroupCalendar._DayFrame:SetDogEarIndex(index)
+	local row = math.floor(index / 8)
+	local column = math.fmod(index, 8)
 	
-	self.DogEarIcon:SetTexCoord(vColumn / 8, (vColumn + 1) / 8, vRow / 4, (vRow + 1) / 4)
+	self.DogEarIcon:SetTexCoord(column / 8, (column + 1) / 8, row / 4, (row + 1) / 4)
 end
 
 function GroupCalendar._DayFrame:SetDate(pMonth, pDay, pYear, pViewMonth)
@@ -581,7 +581,7 @@ function GroupCalendar._DayFrame:GetMergedSchedules(pMonth, pDay, pYear)
 end
 
 function GroupCalendar._DayFrame:Update()
-	local vCurrentDateTimeStamp = GroupCalendar.DateLib:GetServerDateTimeStamp()
+	local currentDateTimeStamp = GroupCalendar.DateLib:GetServerDateTimeStamp()
 	
 	self.Events = GroupCalendar:GetDayEvents(self.Month, self.Day, self.Year, self.Events)
 	
@@ -595,191 +595,177 @@ function GroupCalendar._DayFrame:Update()
 		self.SummaryEvents = {}
 	end
 		
-	--
-	
-	local vDidSetOverlay, vDidSetIcon, vDidSetCooldown, vDidSetBirthday
-	local vSetIconEventData
-	
+	-- Set the day number
 	self.DateText:SetText(self.Day)
-	
-	local vEvent
-	
-	local vHasAppointment, vAppointmentEventData
-	local vHasNewEvent
-	local vHasMore
-	
-	for vEventIndex, vEvent in ipairs(self.Events) do
+
+	-- Scan the day's events to figure out which images to show
+	local didSetIcon, iconEventData
+	local didSetOverlay, didSetDogEarIcon, didSetBirthday
+	local hasAppointment, appointmentEventData -- Appointments are events for which the player is signed up
+	local hasUnseenEvent, hasMore
+
+	for eventIndex, event in ipairs(self.Events) do
+
 		-- Set the cooldown icon
-		
-		if vEvent:IsCooldownEvent()
-		and not vDidSetCooldown then
-			vDidSetCooldown = true
+		if event:IsCooldownEvent() and not didSetDogEarIcon then
+			didSetDogEarIcon = true
 			self.DogEarIcon:Show()
-			self:SetDogEarIndex(self.cCooldownEventDogEarIndex[vEvent.TitleTag] or 5)
+			self:SetDogEarIndex(self.cCooldownEventDogEarIndex[event.TitleTag] or 5)
+		end
+
+		-- Note unseen events so the highlighting can be adjusted below
+		if event.Unseen then
+			hasUnseenEvent = true
 		end
 		
-		if vEvent.Unseen then
-			vHasNewEvent = true
-		end
-		
-		-- Set the main texture for the frame
-		
-		GroupCalendar:DebugMessage(self.Day.." SequenceType: %s", tostring(vEvent.SequenceType))
-		if vEvent.SequenceType ~= "ONGOING"
-		and vEvent.SequenceType ~= "END"
-		and not vEvent:IsCooldownEvent()
-		and not vEvent:IsBirthdayEvent()
-		and vEvent.InviteStatus ~= CALENDAR_INVITESTATUS_DECLINED then
-			if vEvent:IsPlayerCreated()
-			and vDidSetIcon
-			and (vSetIconEventData.CalendarType == "HOLIDAY"
-			  or vSetIconEventData:HasPassed(vCurrentDateTimeStamp)) then
-				vDidSetIcon = false -- Un-set the icon so it'll get re-set by this event
+		-- Set the main image for the frame
+		if event.SequenceType ~= "ONGOING" -- ongoing events aren't interesting
+		and (event.SequenceType ~= "END" or not event.DontDisplayEnd) -- ignore END events if they're not interesting
+		and not event:IsCooldownEvent() -- cooldown events have their own special display
+		and not event:IsBirthdayEvent() -- so do birthdays
+		and event.InviteStatus ~= CALENDAR_INVITESTATUS_DECLINED then -- if the player doesn't care then it isn't interesting
+
+			-- Bump the existing image if this is a player-created event and the existing image is a game-created event or an expired event
+			if didSetIcon and event:IsPlayerCreated()
+			and (iconEventData.CalendarType == "HOLIDAY" or iconEventData:HasPassed(currentDateTimeStamp)) then
+				didSetIcon = false -- Un-set the icon so it'll get re-set by this event
 			end
-			
-			if not vDidSetIcon then
-				local vTexturePath, vTexCoords = GroupCalendar:GetTextureFile(vEvent.TextureID, vEvent.CalendarType, vEvent.NumSequenceDays ~= 2 and vEvent.SequenceType or "", vEvent.EventType, vEvent.TitleTag)
+
+			-- Use this event if there's no image yet
+			if not didSetIcon then
+				local texturePath, texCoords = GroupCalendar:GetTextureFile(event.TextureID, event.CalendarType, event.NumSequenceDays ~= 2 and event.SequenceType or "", event.EventType, event.TitleTag)
 				
-				if vTexturePath then
-					vDidSetIcon = true
-					vSetIconEventData = vEvent
+				if texturePath then
+					didSetIcon = true
+					iconEventData = event
 					
-					--GroupCalendar:DebugMessage(self.Day.." TexturePath: %s", vTexturePath or "nil")
-					
-					self.DayIcon:SetTexture(vTexturePath)
-					self.DayIcon:SetTexCoord(vTexCoords.left, vTexCoords.right, vTexCoords.top, vTexCoords.bottom)
+					self.DayIcon:SetTexture(texturePath)
+					self.DayIcon:SetTexCoord(texCoords.left, texCoords.right, texCoords.top, texCoords.bottom)
 					self.DayIcon:Show()
 				end
 			end
 		end
-		
-		if not vHasAppointment then
-			if vEvent:IsAttending() then
-				vHasAppointment = true
-				vAppointmentEventData = vEvent
-			end
+
+		-- Remember the first event the player has signed up for
+		if not hasAppointment and event:IsAttending() then
+			hasAppointment = true
+			appointmentEventData = event
 		end
-		
+
 		-- Set the holiday overlay
-		
-		if not vDidSetOverlay
-		and vEvent.CalendarType == "HOLIDAY"
-		and vEvent.TextureID ~= "Calendar_FishingExtravaganza" then
---		and vEvent.SequenceType == "ONGOING" then
-			local vTexturePath, vTexCoords = GroupCalendar:GetTextureFile(vEvent.TextureID, vEvent.CalendarType, vEvent.NumSequenceDays ~= 2 and "ONGOING" or "", vEvent.EventType, vEvent.TitleTag)
+		if not didSetOverlay and event.CalendarType == "HOLIDAY" and not event.DontDisplayBanner then
+
+			-- Use the "ongoing" version of the texture to get the banner
+			local sequenceType = event.NumSequenceDays ~= 2 and "ONGOING" or ""
+			local texturePath, texCoords = GroupCalendar:GetTextureFile(event.TextureID, event.CalendarType, sequenceType, event.EventType, event.TitleTag)
 			
-			if vTexturePath then
-				vDidSetOverlay = true
-				
-				GroupCalendar:DebugMessage(self.Day.." overlay TexturePath: %s", vTexturePath or "nil")
-					
-				self.OverlayIcon:SetTexture(vTexturePath)
-				self.OverlayIcon:SetTexCoord(vTexCoords.left, vTexCoords.right, vTexCoords.top, vTexCoords.bottom)
+			if texturePath then
+				didSetOverlay = true
+
+				self.OverlayIcon:SetTexture(texturePath)
+				self.OverlayIcon:SetTexCoord(texCoords.left, texCoords.right, texCoords.top, texCoords.bottom)
 				self.OverlayIcon:SetVertexColor(1, 1, 1, 1)
 				self.OverlayIcon:Show()
 				
-				self.OverlayIconShadow:SetTexture(vTexturePath)
-				self.OverlayIconShadow:SetTexCoord(vTexCoords.left, vTexCoords.right, vTexCoords.top, vTexCoords.bottom)
+				self.OverlayIconShadow:SetTexture(texturePath)
+				self.OverlayIconShadow:SetTexCoord(texCoords.left, texCoords.right, texCoords.top, texCoords.bottom)
 				self.OverlayIconShadow:Show()
 			end
 		end
 		
 		-- Light the candle if there's a birthday
-		
-		if not vDidSetBirthday
-		and vEvent.TitleTag == "BRTH" then
+		if not didSetBirthday and event.TitleTag == "BRTH" then
 			self.BirthdayIcon:SetTexture(GroupCalendar.TitleTagInfo.BRTH.Texture)
 			self.BirthdayIcon:Show()
-			vDidSetBirthday = true
+			didSetBirthday = true
 		end
 		
 		-- Display regular events in the in-date list
-		
-		if vEvent.CalendarType ~= "HOLIDAY"
-		and vEvent.CalendarType ~= "RAID_LOCKOUT"
-		and vEvent.CalendarType ~= "RAID_RESET"
-		and vEvent.CalendarType ~= "ARENA"
-		and not vEvent:IsCooldownEvent()
-		and not vEvent:IsBirthdayEvent() then
+		if event.CalendarType ~= "HOLIDAY"
+		and event.CalendarType ~= "RAID_LOCKOUT"
+		and event.CalendarType ~= "RAID_RESET"
+		and event.CalendarType ~= "ARENA"
+		and not event:IsCooldownEvent()
+		and not event:IsBirthdayEvent() then
 			local vNeedToBump = #self.SummaryEvents >= 2
 			
 			if vNeedToBump then
-				vHasMore = true
+				hasMore = true
 			end
 			
 			if not vNeedToBump then
-				table.insert(self.SummaryEvents, vEvent)
+				table.insert(self.SummaryEvents, event)
 			
 			-- See if an event should be bumped
 			
 			-- ACCEPTED/TENTATIVE/CONFIRMED/STANDBY can bump anything except other ACCEPTED/TENTATIVE/CONFIRMED/STANDBY
 			-- and the last INVITED response
 			
-			elseif vEvent.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-			    or vEvent.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-			    or vEvent.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
-				or vEvent.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-				or vEvent.InviteStatus == CALENDAR_INVITESTATUS_STANDBY then
+			elseif event.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+			    or event.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+			    or event.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
+				or event.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+				or event.InviteStatus == CALENDAR_INVITESTATUS_STANDBY then
 				
 				local vLastInvitedIndex
 				
-				for vExistingEventIndex = #self.SummaryEvents, 1, -1 do
-					local vExistingEventData = self.SummaryEvents[vExistingEventIndex]
+				for existingEventIndex = #self.SummaryEvents, 1, -1 do
+					local existingEventData = self.SummaryEvents[existingEventIndex]
 					
-					if vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
+					if existingEventData.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
 						if vLastInvitedIndex then
 							table.remove(self.SummaryEvents, vLastInvitedIndex)
-							table.insert(self.SummaryEvents, vEvent)
+							table.insert(self.SummaryEvents, event)
 							
-							vLastInvitedIndex = vExistingEventIndex
+							vLastInvitedIndex = existingEventIndex
 							break
 						end
 						
-						vLastInvitedIndex = vExistingEventIndex
-					elseif (vExistingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_ACCEPTED
-					and vExistingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_TENTATIVE
-					and vExistingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_SIGNEDUP
-					and vExistingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_CONFIRMED
-					and vExistingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_STANDBY)
-					or vExistingEventData:HasPassed(vCurrentDateTimeStamp) then
-						table.remove(self.SummaryEvents, vExistingEventIndex)
-						table.insert(self.SummaryEvents, vEvent)
+						vLastInvitedIndex = existingEventIndex
+					elseif (existingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_ACCEPTED
+					and existingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_TENTATIVE
+					and existingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_SIGNEDUP
+					and existingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_CONFIRMED
+					and existingEventData.InviteStatus ~= CALENDAR_INVITESTATUS_STANDBY)
+					or existingEventData:HasPassed(currentDateTimeStamp) then
+						table.remove(self.SummaryEvents, existingEventIndex)
+						table.insert(self.SummaryEvents, event)
 						break
 					end
-				end -- for vExistingEventIndex
+				end -- for existingEventIndex
 				
 			-- Invited can bump one ACCEPTED/CONFIRMED/STANDBY if no currently-selected events
 			-- are INVITED responses
 			
-			elseif vEvent.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
-				local vHasInvited
+			elseif event.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
+				local hasInvited
 				
-				for vExistingEventIndex, vExistingEventData in ipairs(self.SummaryEvents) do
-					if vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
-						vHasInvited = true
+				for existingEventIndex, existingEventData in ipairs(self.SummaryEvents) do
+					if existingEventData.InviteStatus == CALENDAR_INVITESTATUS_INVITED then
+						hasInvited = true
 						
 						-- Replace the existing one if it's in the past
 						
-						if vExistingEventData:HasPassed(vCurrentDateTimeStamp) then
-							table.remove(self.SummaryEvents, vExistingEventIndex)
-							table.insert(self.SummaryEvents, vEvent)
+						if existingEventData:HasPassed(currentDateTimeStamp) then
+							table.remove(self.SummaryEvents, existingEventIndex)
+							table.insert(self.SummaryEvents, event)
 						end
 						
 						break
 					end
 				end
 				
-				if not vHasInvited then
-					for vExistingEventIndex = #self.SummaryEvents, 1, -1 do
-						local vExistingEventData = self.SummaryEvents[vExistingEventIndex]
+				if not hasInvited then
+					for existingEventIndex = #self.SummaryEvents, 1, -1 do
+						local existingEventData = self.SummaryEvents[existingEventIndex]
 						
-						if vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
-						or vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
-						or vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
-						or vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
-						or vExistingEventData.InviteStatus == CALENDAR_INVITESTATUS_STANDBY then
-							table.remove(self.SummaryEvents, vExistingEventIndex)
-							table.insert(self.SummaryEvents, vEvent)
+						if existingEventData.InviteStatus == CALENDAR_INVITESTATUS_ACCEPTED
+						or existingEventData.InviteStatus == CALENDAR_INVITESTATUS_TENTATIVE
+						or existingEventData.InviteStatus == CALENDAR_INVITESTATUS_SIGNEDUP
+						or existingEventData.InviteStatus == CALENDAR_INVITESTATUS_CONFIRMED
+						or existingEventData.InviteStatus == CALENDAR_INVITESTATUS_STANDBY then
+							table.remove(self.SummaryEvents, existingEventIndex)
+							table.insert(self.SummaryEvents, event)
 							break
 						end
 					end
@@ -790,18 +776,18 @@ function GroupCalendar._DayFrame:Update()
 			else
 			end
 		end
-	end -- for vEvent
+	end -- for event
 
-	if not vDidSetCooldown then
+	if not didSetDogEarIcon then
 		self.DogEarIcon:Hide()
 	end
 	
-	if not vDidSetIcon then
+	if not didSetIcon then
 		self.DayIcon:SetTexture()
 		self.DayIcon:Hide()
 	end
 	
-	if not vDidSetOverlay then
+	if not didSetOverlay then
 		self.OverlayIcon:SetTexture()
 		self.OverlayIcon:Hide()
 		
@@ -809,29 +795,28 @@ function GroupCalendar._DayFrame:Update()
 		self.OverlayIconShadow:Hide()
 	end
 	
-	if not vDidSetBirthday then
+	if not didSetBirthday then
 		self.BirthdayIcon:SetTexture()
 		self.BirthdayIcon:Hide()
 	end
 	
-	if vHasNewEvent then
+	if hasUnseenEvent then
 		self:StartFlashing()
 	else
 		self:StopFlashing()
 	end
 	
-	if vHasMore then
+	if hasMore then
 		self.MoreText:Show()
 	else
 		self.MoreText:Hide()
 	end
 	
-	-- Circle the date if appropriate
-	
-	if vHasAppointment then
-		local vColor = vAppointmentEventData:GetEventColor()
+	-- Circle the date if the player is signed up to an event
+	if hasAppointment then
+		local color = appointmentEventData:GetEventColor()
 		
-		self.CircledDate:SetVertexColor(vColor.r, vColor.g, vColor.b, 0.7)
+		self.CircledDate:SetVertexColor(color.r, color.g, color.b, 0.7)
 		self.CircledDate:SetAlpha(vAppointmentIsDimmed and 0.4 or 1.0)
 		self.CircledDate:Show()
 	else
@@ -842,16 +827,16 @@ function GroupCalendar._DayFrame:Update()
 	
 	local vDisplayIndex = #self.SummaryEvents - 1
 	
-	for vIndex, vEvent in ipairs(self.SummaryEvents) do
-		local vEventFrame = self.EventFrames[vIndex]
+	for index, event in ipairs(self.SummaryEvents) do
+		local eventFrame = self.EventFrames[index]
 		
-		if not vEventFrame then
-			vEventFrame = GroupCalendar.DayFrameEventPool:GetFrame()
-			self.EventFrames[vIndex] = vEventFrame
+		if not eventFrame then
+			eventFrame = GroupCalendar.DayFrameEventPool:GetFrame()
+			self.EventFrames[index] = eventFrame
 		end
 		
-		vEventFrame:SetDayFrame(self, vDisplayIndex, vHasMore)
-		vEventFrame:SetEvent(vEvent)
+		eventFrame:SetDayFrame(self, vDisplayIndex, hasMore)
+		eventFrame:SetEvent(event)
 		
 		vDisplayIndex = vDisplayIndex - 1
 	end
@@ -1003,9 +988,9 @@ end
 function GroupCalendar._DayFrameEvent:SetEvent(pEvent)
 	self.Event = pEvent
 	
-	local vColor = self.Event:GetEventColor()
+	local color = self.Event:GetEventColor()
 	
-	self.Title:SetTextColor(vColor.r, vColor.g, vColor.b)
+	self.Title:SetTextColor(color.r, color.g, color.b)
 	
 	if self.Event:IsAllDayEvent() then
 		self.Title:SetText(self.Event.Title)
