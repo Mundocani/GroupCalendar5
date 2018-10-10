@@ -988,7 +988,7 @@ function GroupCalendar:StartEvent(pEvent, pNotificationFunc)
 		vEvent.StartDate, vEvent.StartTime60 = GroupCalendar.DateLib:GetServerDateTime60()
 	end
 	
-	GroupCalendar.EventLib:RegisterEvent("MC2RAIDLIB_RAID_CHANGED", self.EventRaidChanged, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("MC2RAIDLIB_RAID_CHANGED", self.EventRaidChanged, self)
 	
 	GroupCalendar.EventLib:DispatchEvent("GC5_EVENT_START", self.RunningEvent)
 	
@@ -1014,7 +1014,7 @@ function GroupCalendar:StopEvent()
 	
 	self.RunningEvent = nil
 	
-	GroupCalendar.EventLib:UnregisterEvent("MC2RAIDLIB_RAID_CHANGED", self.EventRaidChanged, self)
+	GroupCalendar.EventLib:UnregisterCustomEvent("MC2RAIDLIB_RAID_CHANGED", self.EventRaidChanged, self)
 	
 	GroupCalendar.EventLib:DispatchEvent("GC5_EVENT_STOP")
 	

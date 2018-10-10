@@ -119,13 +119,11 @@ function GroupCalendar.UI._EventGroup:Initialize()
 		local vEvent = self.Event.OriginalEvent or self.Event
 		
 		if GroupCalendar.RunningEvent ~= self.Event
-		and (vEvent.StartDate or vEvent.ElapsedSeconds)
-		and IsModifierKeyDown() then
+		and IsModifierKeyDown() and (vEvent.StartDate or vEvent.ElapsedSeconds) then
 			GroupCalendar:RestartEvent(self.Event)
 			self:Rebuild()
 		else
-			GroupCalendar:StopEvent()
-			GroupCalendar:StartEvent(self.Event, function (...) self:InviteNotification(...) end)
+			self:StartEvent()
 		end
 	end)
 	
@@ -234,6 +232,14 @@ function GroupCalendar.UI._EventGroup:Initialize()
 		else
 			self:ClearSelection()
 		end
+	end)
+end
+
+function GroupCalendar.UI._EventGroup:StartEvent()
+	GroupCalendar:StopEvent()
+
+	GroupCalendar:StartEvent(self.Event, function (...)
+		self:InviteNotification(...)
 	end)
 end
 
@@ -838,10 +844,10 @@ function GroupCalendar.UI._EventGroup:GetGroupVisibleItems(pGroup)
 		local vNumMembers = pGroup:GetNumMembers()
 		
 		for vIndex = 1, vNumMembers do
-			local vMemberGroup, vMemberInfo = pGroup:GetIndexedMember(vIndex)
+			local memberGroup, memberInfo = pGroup:GetIndexedMember(vIndex)
 			
-			if vMemberGroup then
-				vNumItems = vNumItems + self:GetGroupVisibleItems(vMemberGroup)
+			if memberGroup then
+				vNumItems = vNumItems + self:GetGroupVisibleItems(memberGroup)
 			else
 				vNumItems = vNumItems + 1
 			end
@@ -852,20 +858,22 @@ function GroupCalendar.UI._EventGroup:GetGroupVisibleItems(pGroup)
 end
 
 function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
-	local vMemberGroup, vMemberInfo = pItem.Group:GetIndexedMember(pItem.MemberIndex)
+	local memberGroup, memberInfo = pItem.Group:GetIndexedMember(pItem.MemberIndex)
 	
 	if not pMenuID then
 		local attendance = self.Event:GetAttendance()
-		local attendanceInfo = attendance and attendance[vMemberInfo.Name]
-		local playerInfo = GroupCalendar.RaidLib.PlayersByName[vMemberInfo.Name]
-		local vSelfPlayerInfo = GroupCalendar.RaidLib.PlayersByName[GroupCalendar.PlayerName]
+		local attendanceInfo = attendance and attendance[memberInfo.Name]
+		local playerInfo = GroupCalendar.RaidLib.PlayersByName[memberInfo.Name]
+		local selfPlayerInfo = GroupCalendar.RaidLib.PlayersByName[GroupCalendar.PlayerName]
 		local vCanSendInvite = self.Event:CanEdit()
 		local vIsGuildEvent = self.Event:IsGuildWide()
-		local vIsCreator = vMemberInfo.Name == self.Event.Creator
+		local vIsCreator = memberInfo.Name == self.Event.Creator
 		
-		pMenu:AddCategoryTitle(vMemberInfo.Name)
-		pMenu:AddItemWithValue(REMOVE, "PLAYER_REMOVE", nil, nil, not vCanSendInvite)
-		
+		pMenu:AddCategoryTitle(memberInfo.Name)
+		pMenu:AddFunction(REMOVE, function ()
+			self.Event:UninvitePlayer(memberInfo.Name)
+		end, not self.Event:CanEdit());
+
 		if attendanceInfo then
 			pMenu:AddCategoryTitle(STATUS)
 			
@@ -909,17 +917,51 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 		pMenu:AddDivider()
 		pMenu:AddItemWithValue(CALENDAR_INVITELIST_SETMODERATOR, "MODERATOR", nil, attendanceInfo and (attendanceInfo.ModStatus == "MODERATOR" or attendanceInfo.ModStatus == "CREATOR"), (attendanceInfo and attendanceInfo.ModStatus == "CREATOR") or not vCanSendInvite)
 		
-		local vInRaid = playerInfo ~= nil
-		
+		local inRaid = playerInfo ~= nil
+
+		-- Party / raid section
 		pMenu:AddCategoryTitle(VOICE_CHAT_PARTY_RAID)
-		pMenu:AddItemWithValue(CALENDAR_INVITELIST_INVITETORAID, "GROUP_INVITE", nil, nil, vInRaid or vSelfPlayerInfo.Rank == 0)
-		pMenu:AddItemWithValue(REMOVE, "GROUP_REMOVE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= playerInfo.Rank)
-		pMenu:AddItemWithValue(PARTY_PROMOTE, "GROUP_LEADER", nil, nil, not vInRaid or playerInfo.Rank == 2 or vSelfPlayerInfo.Rank ~= 2)
-		pMenu:AddItemWithValue(SET_RAID_ASSISTANT, "GROUP_PROMOTE", nil, nil, not vInRaid or playerInfo.Rank > 0 or vSelfPlayerInfo.Rank ~= 2)
-		pMenu:AddItemWithValue(DEMOTE, "GROUP_DEMOTE", nil, nil, not vInRaid or vSelfPlayerInfo.Rank <= playerInfo.Rank or playerInfo.Rank == 0)
-		
+
+		-- Invite
+		pMenu:AddFunction(CALENDAR_INVITELIST_INVITETORAID, function ()
+			if not GroupCalendar.RaidInvites then
+				self:StartEvent()
+			end
+			GroupCalendar.RaidInvites:InvitePlayer(memberInfo.Name)
+		end, function ()
+			return inRaid or selfPlayerInfo.Rank == 0
+		end)
+
+		-- Remove
+		pMenu:AddFunction(REMOVE, function ()
+			UninviteUnit(memberInfo.Name)
+		end, function ()
+			return not inRaid or selfPlayerInfo.Rank <= playerInfo.Rank
+		end)
+
+		-- Promote to leader
+		pMenu:AddFunction(PARTY_PROMOTE, function ()
+			PromoteToLeader(memberInfo.Name)
+		end, function ()
+			return not inRaid or playerInfo.Rank == 2 or selfPlayerInfo.Rank ~= 2
+		end)
+
+		-- Promote to assistant
+		pMenu:AddFunction(SET_RAID_ASSISTANT, function ()
+			PromoteToAssistant(memberInfo.Name)
+		end, function ()
+			return not inRaid or playerInfo.Rank > 0 or selfPlayerInfo.Rank ~= 2
+		end)
+
+		-- Demote
+		pMenu:AddFunction(DEMOTE, function ()
+			DemoteAssistant(memberInfo.Name)
+		end, function ()
+			return not inRaid or selfPlayerInfo.Rank <= playerInfo.Rank or playerInfo.Rank == 0
+		end)
+
 		local vClassID = (attendanceInfo and attendanceInfo.ClassID) or playerInfo.ClassID
-		local roleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(vMemberInfo.Name, vClassID)
+		local roleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(memberInfo.Name, vClassID)
 		
 		pMenu:AddCategoryTitle("Role")
 		pMenu:AddItemWithValue(GroupCalendar.cHRole, "ROLE_H", nil, roleCode == "H")
@@ -961,14 +1003,14 @@ function GroupCalendar.UI._EventGroup:AddGroupItem(pGroup, pFirstItemIndex, pNum
 	local vMemberIndent = pIndent + 10
 	
 	for vIndex = 1, vNumMembers do
-		local vMemberGroup, vMemberInfo = pGroup:GetIndexedMember(vIndex)
+		local memberGroup, memberInfo = pGroup:GetIndexedMember(vIndex)
 		
 		if vItemIndex > 0 then
 			local vItemFrame = self.ScrollingList.ItemFrames[vItemIndex]
 			local vInfoText
 			
-			if vMemberInfo.ResponseDate then
-				local vDate, vTime = vMemberInfo.ResponseDate, vMemberInfo.ResponseTime
+			if memberInfo.ResponseDate then
+				local vDate, vTime = memberInfo.ResponseDate, memberInfo.ResponseTime
 				
 				if GroupCalendar.Clock.Data.ShowLocalTime then
 					vDate, vTime = GroupCalendar.DateLib:GetLocalDateTimeFromServerDateTime(vDate, vTime)
@@ -979,8 +1021,8 @@ function GroupCalendar.UI._EventGroup:AddGroupItem(pGroup, pFirstItemIndex, pNum
 			
 			vItemFrame:SetPlayer(
 					self.Event,
-					vMemberInfo, vInfoText,
-					self.SelectedPlayers[vMemberInfo.Name] ~= nil,
+					memberInfo, vInfoText,
+					self.SelectedPlayers[memberInfo.Name] ~= nil,
 					vMemberIndent,
 					function (...) self:ListItemFunc(...) end,
 					function (...) self:PlayerMenuFunc(...) end)
@@ -1046,10 +1088,10 @@ function GroupCalendar.UI._EventGroup:ViewMenuFunc(menu, menuID)
 end
 
 function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
-	local vMemberGroup, vMemberInfo
+	local memberGroup, memberInfo
 	
 	if pItem.MemberIndex then
-		vMemberGroup, vMemberInfo = pItem.Group:GetIndexedMember(pItem.MemberIndex)
+		memberGroup, memberInfo = pItem.Group:GetIndexedMember(pItem.MemberIndex)
 	end
 	
 	if pButton == "LeftButton" then
@@ -1057,32 +1099,32 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 			pItem.Group.Expanded = not pItem.Group.Expanded
 			self:Refresh()
 		elseif pPartID == "CHECKBOX" then
-			if vMemberInfo.Name then
-				if self.SelectedPlayers[vMemberInfo.Name] then
-					self.SelectedPlayers[vMemberInfo.Name] = nil
+			if memberInfo.Name then
+				if self.SelectedPlayers[memberInfo.Name] then
+					self.SelectedPlayers[memberInfo.Name] = nil
 				else
-					self.SelectedPlayers[vMemberInfo.Name] = true
+					self.SelectedPlayers[memberInfo.Name] = true
 				end
 				
 				self:Refresh()
 			end
 		elseif pPartID == "ASSIST" then
-			local attendanceInfo = self.Event:GetAttendance()[vMemberInfo.Name]
+			local attendanceInfo = self.Event:GetAttendance()[memberInfo.Name]
 			
 			if not attendanceInfo then
 				return
 			end
 			
-			self.Event:SetModerator(vMemberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
+			self.Event:SetModerator(memberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
 			self:Refresh()
 		elseif pPartID == "LEADER" then
 			self:Refresh()
 		elseif pPartID == "CONFIRM" then
-			self.Event:SetInviteStatus(vMemberInfo.Name, CALENDAR_INVITESTATUS_CONFIRMED)
+			self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_CONFIRMED)
 		elseif pPartID == "STANDBY" then
-			self.Event:SetInviteStatus(vMemberInfo.Name, CALENDAR_INVITESTATUS_STANDBY)
+			self.Event:SetInviteStatus(memberInfo.Name, CALENDAR_INVITESTATUS_STANDBY)
 		elseif pPartID == "INVITE" then
-			GroupCalendar.RaidInvites:InvitePlayer(vMemberInfo.Name)
+			GroupCalendar.RaidInvites:InvitePlayer(memberInfo.Name)
 		end
 	elseif pButton == "MENU" then
 		if pPartID:sub(1, 7) == "PLAYER_" then
@@ -1090,22 +1132,22 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 			
 			if vOp == "EDIT" then
 			elseif vOp == "REMOVE" then
-				self.Event:UninvitePlayer(vMemberInfo.Name)
+				self.Event:UninvitePlayer(memberInfo.Name)
 			end
 			
 		elseif pPartID:sub(1, 7) == "STATUS_" then
 			local vStatus = pPartID:sub(8)
 			
-			self.Event:SetInviteStatus(vMemberInfo.Name, _G["CALENDAR_INVITESTATUS_"..vStatus])
+			self.Event:SetInviteStatus(memberInfo.Name, _G["CALENDAR_INVITESTATUS_"..vStatus])
 		
 		elseif pPartID:sub(1, 5) == "ROLE_" then
 			local roleCode = pPartID:sub(6)
 			
-			if self.Event:GetAttendance()[vMemberInfo.Name] then
-				self.Event:SetInviteRoleCode(vMemberInfo.Name, roleCode)
+			if self.Event:GetAttendance()[memberInfo.Name] then
+				self.Event:SetInviteRoleCode(memberInfo.Name, roleCode)
 			end
 			
-			GroupCalendar:SetPlayerDefaultRoleCode(vMemberInfo.Name, roleCode)
+			GroupCalendar:SetPlayerDefaultRoleCode(memberInfo.Name, roleCode)
 			
 			self:Rebuild()
 			
@@ -1113,20 +1155,20 @@ function GroupCalendar.UI._EventGroup:ListItemFunc(pItem, pButton, pPartID)
 			local vOp = pPartID:sub(8)
 			
 			if vOp == "INVITE" then
-				GroupCalendar.RaidInvites:InvitePlayer(vMemberInfo.Name)
+				GroupCalendar.RaidInvites:InvitePlayer(memberInfo.Name)
 			elseif vOp == "REMOVE" then
-				UninviteUnit(vMemberInfo.Name)
+				UninviteUnit(memberInfo.Name)
 			elseif vOp == "LEADER" then
-				PromoteToLeader(vMemberInfo.Name)
+				PromoteToLeader(memberInfo.Name)
 			elseif vOp == "PROMOTE" then
-				PromoteToAssistant(vMemberInfo.Name)
+				PromoteToAssistant(memberInfo.Name)
 			elseif vOp == "DEMOTE" then
-				DemoteAssistant(vMemberInfo.Name)
+				DemoteAssistant(memberInfo.Name)
 			end
 		elseif pPartID == "MODERATOR" then
-			local attendanceInfo = self.Event:GetAttendance()[vMemberInfo.Name]
+			local attendanceInfo = self.Event:GetAttendance()[memberInfo.Name]
 			
-			self.Event:SetModerator(vMemberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
+			self.Event:SetModerator(memberInfo.Name, attendanceInfo.ModStatus ~= "MODERATOR")
 			self:Refresh()
 		end
 	end
@@ -1414,12 +1456,12 @@ function GroupCalendar.UI._EventGroup._ListItem:SetPlayer(
 		self.InfoText:SetPoint("RIGHT", self.ConfirmButton, "LEFT")
 		self.InfoText:SetText("")
 	else
-		local vSelfPlayerInfo = GroupCalendar.RaidLib.PlayersByName[GroupCalendar.PlayerName]
+		local selfPlayerInfo = GroupCalendar.RaidLib.PlayersByName[GroupCalendar.PlayerName]
 		
 		if vIsConfirmedOrStandby
 		and GroupCalendar.RunningEvent == pEvent
 		and not GroupCalendar.RaidLib.PlayersByName[playerInfo.Name]
-		and vSelfPlayerInfo.Rank > 0 then
+		and selfPlayerInfo.Rank > 0 then
 			self.InviteButton:Show()
 			self.InfoText:SetPoint("RIGHT", self.InviteButton, "LEFT")
 		else
