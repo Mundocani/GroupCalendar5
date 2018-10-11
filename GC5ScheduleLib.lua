@@ -3019,7 +3019,7 @@ function GroupCalendar.WoWCalendar:EventSetDescription(pDescription)
 			local vTrunc = vResult:len() - GroupCalendar.EVENT_MAX_DESCRIPTION_LENGTH
 			vResult = self.Description:sub(1, -(vTrunc + 1)).."\r["..self.DescriptionTag.."]"
 		end
-		
+
 		return C_Calendar.EventSetDescription(vResult)
 	else
 		return C_Calendar.EventSetDescription(self.Description)
@@ -3575,43 +3575,37 @@ function GroupCalendar:GetTextureCache()
 	return self.textureCache
 end
 
-function GroupCalendar:TextureCacheForEventType(eventType, ...)
+function GroupCalendar:TextureCacheForEventType(eventType, textures)
 	local eventTypeTextureCache = {}
-
-	local STRIDE = 6
-	local numTextures = select("#", ...) / STRIDE
-	if numTextures <= 0 then
-		return false
-	end
 
 	local overlappingMapIDs = (eventType == CALENDAR_EVENTTYPE_RAID or eventType == CALENDAR_EVENTTYPE_DUNGEON) and {}
 
 	local cacheIndex = 1
-	for textureIndex = 1, numTextures do
+	for textureIndex, texture in ipairs(textures) do
 		if not eventTypeTextureCache[cacheIndex] then
 			eventTypeTextureCache[cacheIndex] = {}
 		end
 
-		local title, texture, expansionLevel, difficultyID, mapID, isLFR = select((textureIndex - 1) * STRIDE + 1, ...)
-		local difficultyName, instanceType, isHeroic, isChallengeMode, displayHeroic, displayMythic, toggleDifficultyID = GetDifficultyInfo(difficultyID)
+
+		local difficultyName, instanceType, isHeroic, isChallengeMode, displayHeroic, displayMythic, toggleDifficultyID = GetDifficultyInfo(texture.difficultyId)
 		if not difficultyName then
 			difficultyName = ""
 		end
 
-		if overlappingMapIDs and overlappingMapIDs[mapID] then
+		if overlappingMapIDs and overlappingMapIDs[texture.mapId] then
 			-- Already exists a map, collapse the difficulty
-			local firstCacheIndex = overlappingMapIDs[mapID]
+			local firstCacheIndex = overlappingMapIDs[texture.mapId]
 			local cacheEntry = eventTypeTextureCache[firstCacheIndex]
 
-			if cacheEntry.isLFR and not isLFR then
+			if cacheEntry.isLFR and not texture.isLfr then
 				-- Prefer a non-LFR name over a LFR name
-				cacheEntry.title = title
+				cacheEntry.title = texture.title
 				cacheEntry.isLFR = nil
 			end
 
 			if cacheEntry.displayHeroic or cacheEntry.displayMythic and (not displayHeroic and not displayMythic) then
 				-- Prefer normal difficulty name over higher difficulty
-				cacheEntry.title = title
+				cacheEntry.title = texture.title
 				cacheEntry.displayHeroic = nil
 				cacheEntry.displayMythic = nil
 			end
@@ -3619,17 +3613,17 @@ function GroupCalendar:TextureCacheForEventType(eventType, ...)
 			table.insert(cacheEntry.difficulties, { textureIndex = textureIndex, difficultyName = difficultyName })
 		else
 			eventTypeTextureCache [cacheIndex].textureIndex = textureIndex
-			eventTypeTextureCache [cacheIndex].title = title
-			eventTypeTextureCache [cacheIndex].texture = texture
-			eventTypeTextureCache [cacheIndex].expansionLevel = expansionLevel
+			eventTypeTextureCache [cacheIndex].title = texture.title
+			eventTypeTextureCache [cacheIndex].texture = texture.iconTexture
+			eventTypeTextureCache [cacheIndex].expansionLevel = texture.expansionLevel
 			eventTypeTextureCache [cacheIndex].difficultyName = difficultyName
-			eventTypeTextureCache [cacheIndex].isLFR = isLFR
+			eventTypeTextureCache [cacheIndex].isLFR = texture.isLfr
 			eventTypeTextureCache [cacheIndex].displayHeroic = displayHeroic
 			eventTypeTextureCache [cacheIndex].displayMythic = displayMythic
 
 			if overlappingMapIDs then
-				if not overlappingMapIDs[mapID] then
-					overlappingMapIDs[mapID] = cacheIndex
+				if not overlappingMapIDs[texture.mapId] then
+					overlappingMapIDs[texture.mapId] = cacheIndex
 				end
 				eventTypeTextureCache [cacheIndex].difficulties = { { textureIndex = textureIndex, difficultyName = difficultyName } }
 			end

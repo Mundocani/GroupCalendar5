@@ -34,36 +34,40 @@ function GroupCalendar.UI._EventEditor:Initialize()
 	self.EventTypeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:EventTypeMenuFunc(...) end, 150)
 	self.EventTypeMenu:SetPoint("TOPLEFT", self, "TOPLEFT", 100, -78)
 	self.EventTypeMenu:SetTitle(GroupCalendar.cEventLabel)
-	function self.EventTypeMenu.ItemClicked(pMenu, pItemID)
-		self:ClearFocus()
-		
-		local _, _, vEventType, vTextureIndex = pItemID:find("(.*)_(.*)")
-		
-		vEventType = tonumber(vEventType) or vEventType
-		vTextureIndex = tonumber(vTextureIndex)
 
-		self:SetEventType(vEventType, vTextureIndex)
-		
-		if not self.Event.Index
-		and not self.DidLoadDefaultsFromTitle then
-			self:LoadEventDefaults(GroupCalendar:FindEventTemplateByEvent(self.Event))
-			self.DidLoadDefaultsFromType = true
-		end
+	self.DifficultyMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self,
+		function (menu)
+			-- Return an empty menu if no event is set
+			if not self.Event then
+				return
+			end
 
-		CloseDropDownMenus()
-	end
-	
-	self.DifficultyMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:DifficultyMenuFunc(...) end, 65)
+			-- Iterate the difficulties for the current event type
+			local eventType = self.Event.EventType
+			local textureIndex = self.Event.TextureIndex
+			local eventTex = GroupCalendar:GetEventTexture(textureIndex, eventType)
+			if eventTex then
+				local alreadyAddedDifficulties = {}
+				for i, difficultyInfo in ipairs(eventTex.difficulties) do
+					if not alreadyAddedDifficulties[difficultyInfo.difficultyName] then
+						local item = menu:AddToggleWithIcon(difficultyInfo.difficultyName, difficultyInfo.textureIndex, nil,
+							function ()
+								local checked = textureIndex == difficultyInfo.textureIndex or nil
+								return checked
+							end,
+							function ()
+								self:ClearFocus()
+								self:SetEventType(self.Event.EventType, difficultyInfo.textureIndex)
+							end
+						)
+						item.value = difficultyInfo.textureIndex
+						alreadyAddedDifficulties[difficultyInfo.difficultyName] = true
+					end
+				end
+			end
+		end, 65)
 	self.DifficultyMenu:SetPoint("TOPLEFT", self.EventTypeMenu, "TOPRIGHT", 5, 0)
-	function self.DifficultyMenu.ItemClicked(pMenu, pItemID)
-		self:ClearFocus()
-		
-		local vEventType = self.Event.EventType
-		local vTextureIndex = tonumber(pItemID)
 
-		self:SetEventType(vEventType, vTextureIndex)
-	end
-	
 	self.EventTitle = GroupCalendar:New(GroupCalendar.UIElementsLib._EditBox, self, GroupCalendar.cTitleLabel, 100, 220)
 	self.EventTitle:SetPoint("TOPLEFT", self.EventTypeMenu, "BOTTOMLEFT", 0, -self.ItemSpacing)
 	GroupCalendar:HookScript(self.EventTitle, "OnChar", function (pEditBox)
@@ -184,9 +188,10 @@ function GroupCalendar.UI._EventEditor:Initialize()
 	self.DurationMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:DurationMenuFunc(...) end)
 	self.DurationMenu:SetPoint("TOPLEFT", self.TimePicker, "BOTTOMLEFT", 0, -self.ItemSpacing)
 	self.DurationMenu:SetTitle(GroupCalendar.cDurationLabel)
-	function self.DurationMenu.ItemClicked(pMenu, pItemID)
+	function self.DurationMenu.DidSelectItemWithValue(menu, value)
 		self:ClearFocus()
-		self.Event:SetDuration(tonumber(pItemID))
+		self.DurationMenu:SetSelectedValue(value)
+		self.Event:SetDuration(value)
 	end
 	
 	self.RepeatMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:RepeatMenuFunc(...) end)
@@ -316,7 +321,7 @@ function GroupCalendar.UI._EventEditor:OnShow()
 	self:Initialize()
 	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
 
-	GroupCalendar.EventLib:RegisterEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
+	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
 	
 	if not self.Event then
 		return
@@ -359,10 +364,10 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 	self.Description:SetText(self.Event.Description or "")
 	self.Description:SetEnabled(vCanEdit)
 	
---	self.EventTypeMenu:SetSelectedValue(self:GetEventTypeID())
+	self.EventTypeMenu:SetSelectedValue(self:GetEventTypeID())
 	self.EventTypeMenu:SetEnabled(vCanEdit)
 	
---	self.DifficultyMenu:SetSelectedValue(self.Event.TextureIndex)
+	self.DifficultyMenu:SetSelectedValue(self.Event.TextureIndex)
 	self.DifficultyMenu:SetEnabled(vCanEdit)
 
 	if self.Event:IsAllDayEvent() then
@@ -371,14 +376,11 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 	else
 		self.TimePicker:Show()
 		self.TimePicker:SetEnabled(vCanEdit)
-		
+
 		self.DurationMenu:Show()
---		self.DurationMenu:SetSelectedValue(self.Event.Duration)
+		self.DurationMenu:SetSelectedValue(self.Event.Duration)
 		self.DurationMenu:SetEnabled(vCanEdit)
 	end
-	
---	self.RepeatMenu:SetSelectedValue(self.Event.RepeatOption or 1)
-	self.RepeatMenu:SetEnabled(vCanEdit)
 	
 	local vEventDate = GroupCalendar.DateLib:ConvertMDYToDate(self.Event.Month, self.Event.Day, self.Event.Year)
 	local vEventTime = GroupCalendar.DateLib:ConvertHMToTime(self.Event.Hour, self.Event.Minute)
@@ -510,9 +512,9 @@ function GroupCalendar.UI._EventEditor:LoadEventDefaults(pTemplate)
 end
 
 function GroupCalendar.UI._EventEditor:GetDefaultTitle()
-	local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(self.Event.EventType)
+	local eventTypeTextures = GroupCalendar:GetEventTypeTextures(self.Event.EventType)
 	
-	local vInfo = vEventTypeTextures[self.Event.TextureIndex]
+	local vInfo = eventTypeTextures[self.Event.TextureIndex]
 	
 	if not vInfo then
 		return
@@ -620,165 +622,182 @@ function GroupCalendar.UI._EventEditor:EventModeMenuFunc(pMenu, pMenuID, pLevel)
 	)
 end
 	
-function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu, menuID, pLevel)
-	if not menuID then
-		local orderedEventTypes = C_Calendar.EventGetTypesDisplayOrdered()[1]
-		for index, info in ipairs(orderedEventTypes) do
-			local name = _G[info.displayName] or info.displayName
+function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu)
+	local orderedEventTypes = C_Calendar.EventGetTypesDisplayOrdered()
 
-			if info.eventType == 1 or info.eventType == 2 or info.eventType == 6 then
-				local maxExpansion = 6
-				local minExpansion = info.eventType == 6 and 1 or 0 -- Classic didn't have heroics
-				for expansion = maxExpansion, minExpansion, -1 do
-					menu:AddChildMenu(
-							name.." (".._G["EXPANSION_NAME"..expansion]..")",
-							{Type = info.eventType, ExpLevel = expansion})
-				end
-			else
-				if info.eventType == 3 then
-					menu:AddDivider()
-				end
-				menu:AddToggleWithIcon(
-					name,
-					GroupCalendar:GetTextureFile(nil, "PLAYER", nil, info.eventType),
-					nil,
-					function ()
-						return self.Event and self.Event.EventType == info.eventType
-					end,
-					function (menu, value)
+	for index, info in ipairs(orderedEventTypes) do
+		local name = _G[info.displayString] or info.displayString
 
-					end
-				)
-			end
+		if info.eventType == CALENDAR_EVENTTYPE_DUNGEON or info.eventType == CALENDAR_EVENTTYPE_PVP then
+			menu:AddDivider()
 		end
-		
-		menu:AddToggleWithIcon(
-			GroupCalendar.cRoleplayEventName,
-			GroupCalendar.TitleTagInfo.RP.Texture,
-			nil,
-		 	function ()
-		 		return self.Event and self.Event.TitleTag == "RP"
-		 	end,
-		 	function (menu, value)
-		 	end
-		)
 
-		menu:AddToggleWithIcon(
-			GroupCalendar.cRoleplayEventName,
-			GroupCalendar.TitleTagInfo.BRTH.Texture,
-			nil,
-		 	function ()
-		 		return self.Event and self.Event.TitleTag == "BRTH"
-		 	end,
-		 	function (menu, value)
-		 	end
-		)
+		if info.eventType == CALENDAR_EVENTTYPE_RAID or info.eventType == CALENDAR_EVENTTYPE_DUNGEON then
+			local maxExpansion = 7
+			local minExpansion = 0 -- Classic didn't have heroics
 
-		menu:AddToggleWithIcon(
-			GroupCalendar.cRoleplayEventName,
-			GroupCalendar.TitleTagInfo.VAC.Texture,
-			nil,
-		 	function ()
-		 		return self.Event and self.Event.TitleTag == "VAC"
-		 	end,
-		 	function (menu, value)
-		 	end
-		)
+			local textureCache = GroupCalendar:GetTextureCache()
+			local textureCacheForType = textureCache[info.eventType]
 
-		menu:AddToggleWithIcon(
-			GroupCalendar.cRoleplayEventName,
-			GroupCalendar.TitleTagInfo.MD.Texture,
-			nil,
-		 	function ()
-		 		return self.Event and self.Event.TitleTag == "MD"
-		 	end,
-		 	function (menu, value)
-		 	end
-		)
-
-		menu:AddToggleWithIcon(
-			GroupCalendar.cRoleplayEventName,
-			GroupCalendar.TitleTagInfo.DDS.Texture,
-			nil,
-		 	function ()
-		 		return self.Event and self.Event.TitleTag == "DDS"
-		 	end,
-		 	function (menu, value)
-		 	end
-		)
-	else
-		local vTextureCache = GroupCalendar:GetTextureCache()
-		local vTextureCacheForType = vTextureCache[menuID.Type]
-
-		local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(menuID.Type)
-		
-		for vCacheIndex, textureInfo in ipairs(vTextureCacheForType) do
-			if textureInfo.expansionLevel == menuID.ExpLevel then
-				menu:AddToggleWithIcon(
-					textureInfo.title,
-					GroupCalendar:GetTextureFile(textureInfo.texture, "PLAYER", nil, menuID.Type),
-					nil,
-					function ()
-						return self.Event and self.Event.EventType == menuID.Type and self.Event.TextureIndex == textureInfo.textureIndex
-					end,
-					function (menu, value)
-					end
-				)
+			for expansion = maxExpansion, minExpansion, -1 do
+				menu:AddChildMenu(
+					name.." (".._G["EXPANSION_NAME"..expansion]..")",
+					function (menu)
+						for cacheIndex, textureInfo in ipairs(textureCacheForType) do
+							if textureInfo.expansionLevel == expansion then
+								local item = menu:AddToggleWithIcon(
+									textureInfo.title,
+									GroupCalendar:GetTextureFile(textureInfo.texture, "PLAYER", nil, info.eventType),
+									nil,
+									function ()
+										return self.Event and self.Event.EventType == info.eventType and self.Event.TextureIndex == textureInfo.textureIndex
+									end,
+									function (menu, value)
+										self:SetEventTypeWithDefaults(info.eventType, textureInfo.textureIndex)
+									end
+								)
+								item.value = info.eventType.."_"..textureInfo.textureIndex
+							end
+						end
+					end)
 			end
-		end
-	end
-end
-
-function GroupCalendar.UI._EventEditor:DifficultyMenuFunc(pMenu, pMenuID, pLevel)
-	-- Return an empty menu if no event is set
-	if not self.Event then
-		return
-	end
-
-	-- Iterate the difficulties for the current event type
-	local eventType = self.Event.EventType;
-	local textureIndex = self.Event.TextureIndex;
-	local eventTex = GroupCalendar:GetEventTexture(textureIndex, eventType);
-	if eventTex then
-		local alreadyAddedDifficulties = {};
-		for i, difficultyInfo in ipairs(eventTex.difficulties) do
-			if not alreadyAddedDifficulties[difficultyInfo.difficultyName] then
-				local checked = textureIndex == difficultyInfo.textureIndex or nil
-				pMenu:AddItemWithValue(difficultyInfo.difficultyName, difficultyInfo.textureIndex, nil, checked);
-				alreadyAddedDifficulties[difficultyInfo.difficultyName] = true;
-			end
-		end
-	end
-end
-
-function GroupCalendar.UI._EventEditor:DurationMenuFunc(menu, menuID)
-	local vDurations = {15, 30, 60, 90, 120, 150, 180, 210, 240, 300, 360}
-
-	for _, vDuration in ipairs(vDurations) do
-		local vText
-
-		local vMinutes = math.fmod(vDuration, 60)
-		local vHours = (vDuration - vMinutes) / 60
-
-		if vHours == 0 then
-			vText = format(GroupCalendar.cPluralMinutesFormat, vMinutes)
 		else
-			if vMinutes ~= 0 then
-				if vHours == 1 then
-					vText = format(GroupCalendar.cSingularHourPluralMinutes, vHours, vMinutes)
+			local item = menu:AddToggleWithIcon(
+				name,
+				GroupCalendar:GetTextureFile(nil, "PLAYER", nil, info.eventType),
+				nil,
+				function ()
+					return self.Event and self.Event.EventType == info.eventType
+				end,
+				function (menu, value)
+					self:SetEventTypeWithDefaults(info.eventType)
+				end
+			)
+			item.value = info.eventType.."_"..0
+		end
+	end
+
+	local item = menu:AddToggleWithIcon(
+		GroupCalendar.cRoleplayEventName,
+		GroupCalendar.TitleTagInfo.RP.Texture,
+		nil,
+		function ()
+			return self.Event and self.Event.TitleTag == "RP"
+		end,
+		function (menu, value)
+			self:SetEventTypeWithDefaults("RP")
+		end
+	)
+	item.value = "RP_"
+
+	item = menu:AddToggleWithIcon(
+		GroupCalendar.cBirthdayEventName,
+		GroupCalendar.TitleTagInfo.BRTH.Texture,
+		nil,
+		function ()
+			return self.Event and self.Event.TitleTag == "BRTH"
+		end,
+		function (menu, value)
+			self:SetEventTypeWithDefaults("BRTH")
+		end
+	)
+	item.value = "BRTH_"
+
+	item = menu:AddToggleWithIcon(
+		GroupCalendar.cVacationEventName,
+		GroupCalendar.TitleTagInfo.VAC.Texture,
+		nil,
+		function ()
+			return self.Event and self.Event.TitleTag == "VAC"
+		end,
+		function (menu, value)
+			self:SetEventTypeWithDefaults("VAC")
+		end
+	)
+	item.value = "VAC_"
+
+	item = menu:AddToggleWithIcon(
+		GroupCalendar.cDoctorEventName,
+		GroupCalendar.TitleTagInfo.MD.Texture,
+		nil,
+		function ()
+			return self.Event and self.Event.TitleTag == "MD"
+		end,
+		function (menu, value)
+			self:SetEventTypeWithDefaults("MD")
+		end
+	)
+	item.value = "MD_"
+
+	item = menu:AddToggleWithIcon(
+		GroupCalendar.cDentistEventName,
+		GroupCalendar.TitleTagInfo.DDS.Texture,
+		nil,
+		function ()
+			return self.Event and self.Event.TitleTag == "DDS"
+		end,
+		function (menu, value)
+			self:SetEventTypeWithDefaults("DDS")
+		end
+	)
+	item.value = "DDS_"
+--[[
+	function self.EventTypeMenu.ItemClicked(pMenu, pItemID)
+		self:ClearFocus()
+
+		local _, _, vEventType, vTextureIndex = pItemID:find("(.*)_(.*)")
+
+		vEventType = tonumber(vEventType) or vEventType
+		vTextureIndex = tonumber(vTextureIndex)
+
+		self:SetEventTypeWithDefaults(vEventType, vTextureIndex)
+
+		CloseDropDownMenus()
+	end
+]]
+end
+
+function GroupCalendar.UI._EventEditor:SetEventTypeWithDefaults(eventType, textureIndex)
+	GroupCalendar:DebugMessage("_EventEditor:SetEventTypeWithDefaults %s", tostring(textureIndex))
+
+	self.EventTypeMenu:SetSelectedValue(textureIndex)
+
+	self:SetEventType(eventType, textureIndex)
+
+	if not self.Event.Index and not self.DidLoadDefaultsFromTitle then
+		self:LoadEventDefaults(GroupCalendar:FindEventTemplateByEvent(self.Event))
+		self.DidLoadDefaultsFromType = true
+	end
+end
+
+function GroupCalendar.UI._EventEditor:DurationMenuFunc(menu)
+	local durations = {15, 30, 60, 90, 120, 150, 180, 210, 240, 300, 360}
+
+	for _, duration in ipairs(durations) do
+		local text
+
+		local minutes = math.fmod(duration, 60)
+		local hours = (duration - minutes) / 60
+
+		if hours == 0 then
+			text = format(GroupCalendar.cPluralMinutesFormat, minutes)
+		else
+			if minutes ~= 0 then
+				if hours == 1 then
+					text = format(GroupCalendar.cSingularHourPluralMinutes, hours, minutes)
 				else
-					vText = format(GroupCalendar.cPluralHourPluralMinutes, vHours, vMinutes)
+					text = format(GroupCalendar.cPluralHourPluralMinutes, hours, minutes)
 				end
 			else
-				if vHours == 1 then
-					vText = format(GroupCalendar.cSingularHourFormat, vHours)
-				elseif vHours > 0 then
-					vText = format(GroupCalendar.cPluralHourFormat, vHours)
+				if hours == 1 then
+					text = format(GroupCalendar.cSingularHourFormat, hours)
+				elseif hours > 0 then
+					text = format(GroupCalendar.cPluralHourFormat, hours)
 				end
 			end
 		end
 		
-		menu:AddItemWithValue(vText, vDuration)
+		menu:AddItemWithValue(text, duration)
 	end
 end
 

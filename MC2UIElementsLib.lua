@@ -1368,6 +1368,11 @@ function Addon.UIElementsLib._DropDownMenuItems:GetItemWithValue(value)
 	for index, item in ipairs(self.args) do
 		if item.value == value then
 			return item, index
+		elseif item.type == "group" then
+			local item, index2 = item:GetItemWithValue(value)
+			if item then
+				return item, index, index2
+			end
 		end
 	end
 end
