@@ -263,27 +263,26 @@ function GroupCalendar.UI._MonthView:ShowCurrentMonth()
 end
 
 function GroupCalendar.UI._MonthView:SelectDate(pMonth, pDay, pYear)
-	local vDayFrame
+	local dayFrame
 	
 	-- Deselect the currently selected date
-	
 	if self.SelectedMonth then
-		vDayFrame = self:GetDayFrameByDate(self.SelectedMonth, self.SelectedDay, self.SelectedYear)
-		if vDayFrame then vDayFrame:SetSelected(false) end
+		dayFrame = self:GetDayFrameByDate(self.SelectedMonth, self.SelectedDay, self.SelectedYear)
+		if dayFrame then
+			dayFrame:SetSelected(false)
+		end
 	end
 	
-	-- Done if nothing being selected
-	
+	-- Change the selection
 	self.SelectedMonth, self.SelectedDay, self.SelectedYear = pMonth, pDay, pYear
 	
-	if not self.SelectedMonth then
-		return
-	end
-	
 	-- Highlight the new selection
-	
-	local vDayFrame = self:GetDayFrameByDate(self.SelectedMonth, self.SelectedDay, self.SelectedYear)
-	if vDayFrame then vDayFrame:SetSelected(true) end
+	if self.SelectedMonth then
+		dayFrame = self:GetDayFrameByDate(self.SelectedMonth, self.SelectedDay, self.SelectedYear)
+		if dayFrame then
+			dayFrame:SetSelected(true)
+		end
+	end
 end
 
 function GroupCalendar.UI._MonthView:GetDayFrameByDate(month, day, year)
@@ -297,10 +296,10 @@ function GroupCalendar.UI._MonthView:GetDayFrameByDate(month, day, year)
 	if month == previousMonthInfo.month and year == previousMonthInfo.year then
 		dayFrameIndex = firstDay + day - previousMonthInfo.numDays - 1
 		
-	elseif mont == currentMonthInfo.year and year == currentMonthInfo.year then
+	elseif month == currentMonthInfo.month and year == currentMonthInfo.year then
 		dayFrameIndex = firstDay + day - 1
-	
-	elseif mont == nextMonthInfo.year and year == nextMonthInfo.year then
+
+	elseif month == nextMonthInfo.month and year == nextMonthInfo.year then
 		dayFrameIndex = firstDay + currentMonthInfo.numDays + day - 1
 	end
 	
