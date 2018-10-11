@@ -504,33 +504,9 @@ function GroupCalendar:AddTooltipEvents(pTooltip, pEvents, pUseLocalTime)
 	end
 end
 
-function GroupCalendar:GetEventTypeTextures(pEventType)
-	if not self.EventTypeTextures then
-		self.EventTypeTextures = {}
-	end
-	
-	local vEventTypeTextures = self.EventTypeTextures[pEventType]
-	
-	if not vEventTypeTextures then
-		vEventTypeTextures = {}
-		
-		local vTextures = {GroupCalendar.WoWCalendar:EventGetTextures(pEventType)}
-		local vTextureIndex = 1
-
-		for vIndex = 1, #vTextures, 6 do
-			vEventTypeTextures[vTextureIndex] = {
-				Name = vTextures[vIndex],
-				TextureName = vTextures[vIndex + 1],
-				ExpLevel = vTextures[vIndex + 2],
-				DifficultyName = vTextures[vIndex + 3]
-			}
-			vTextureIndex = vTextureIndex + 1
-		end
-
-		self.EventTypeTextures[pEventType] = vEventTypeTextures
-	end
-	
-	return vEventTypeTextures
+function GroupCalendar:GetEventTypeTextures(eventType)
+	local textures = GroupCalendar.WoWCalendar:EventGetTextures(eventType)
+	return textures
 end
 
 function GroupCalendar:InitializeEventDefaults()
@@ -1148,7 +1124,8 @@ function GroupCalendar._APIEventMethods:Save()
 end
 
 function GroupCalendar._APIEventMethods:Copy()
-	GroupCalendar.WoWCalendar:ContextMenuEventCopy(GroupCalendar.WoWCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+	GroupCalendar.WoWCalendar:ContextMenuSelectEvent(GroupCalendar.WoWCalendar:GetMonthOffset(self.Month, self.Year), self.Day, self.Index)
+	GroupCalendar.WoWCalendar:ContextMenuEventCopy()
 end
 
 function GroupCalendar._APIEventMethods:Delete()

@@ -759,32 +759,25 @@ end
 ----------------------------------------
 
 function GroupCalendar:AutoCompleteEventTitle(pEditBox)
-	local vEditBoxText = pEditBox:GetText()
-	local vUpperEditBoxText = vEditBoxText:upper()
-	local vUpperEditBoxTextLen = vUpperEditBoxText:len()
+	local editBoxText = pEditBox:GetText()
+	local upperEditBoxText = editBoxText:upper()
+	local upperEditBoxTextLen = upperEditBoxText:len()
 	
-	local vTemplate = self:FindEventTemplateByPartialTitle(vEditBoxText)
+	local template = self:FindEventTemplateByPartialTitle(editBoxText)
 	
-	if vTemplate then
-		GroupCalendar:SetEditBoxAutoCompleteText(pEditBox, vTemplate.Title)
-		return nil, nil, vTemplate
+	if template then
+		GroupCalendar:SetEditBoxAutoCompleteText(pEditBox, template.Title)
+		return nil, nil, template
 	end
 	
-	for vEventType = CALENDAR_EVENTTYPE_RAID, CALENDAR_EVENTTYPE_OTHER do
-		local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(vEventType)
+	for eventType = CALENDAR_EVENTTYPE_RAID, CALENDAR_EVENTTYPE_OTHER do
+		local eventTypeTextures = GroupCalendar:GetEventTypeTextures(eventType)
 		
-		for vTextureIndex, vTextureInfo in ipairs(vEventTypeTextures) do
-			local vName
-			
-			if vTextureInfo.DifficultyName == "" then
-				vName = vTextureInfo.Name
-			else
-				vName = DUNGEON_NAME_WITH_DIFFICULTY:format(vTextureInfo.Name, vTextureInfo.DifficultyName)
-			end
-			
-			if vName:upper():sub(1, vUpperEditBoxTextLen) == vUpperEditBoxText then
-				GroupCalendar:SetEditBoxAutoCompleteText(pEditBox, vName)
-				return vEventType, vTextureIndex
+		for textureIndex, textureInfo in ipairs(eventTypeTextures) do
+			local name = textureInfo.title
+			if name:upper():sub(1, upperEditBoxTextLen) == upperEditBoxText then
+				GroupCalendar:SetEditBoxAutoCompleteText(pEditBox, name)
+				return eventType, textureIndex
 			end
 		end
 	end
