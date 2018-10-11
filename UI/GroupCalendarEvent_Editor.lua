@@ -514,16 +514,20 @@ end
 function GroupCalendar.UI._EventEditor:GetDefaultTitle()
 	local eventTypeTextures = GroupCalendar:GetEventTypeTextures(self.Event.EventType)
 	
-	local vInfo = eventTypeTextures[self.Event.TextureIndex]
+	local textureInfo = eventTypeTextures[self.Event.TextureIndex]
 	
-	if not vInfo then
+	if not textureInfo then
 		return
 	end
 	
-	if vInfo.DifficultyName == "" then
-		return vInfo.Name
+	if not textureInfo.difficultyId then
+		return textureInfo.title
 	else
-		return DUNGEON_NAME_WITH_DIFFICULTY:format(vInfo.Name, vInfo.DifficultyName)
+		local difficultyName, instanceType, isHeroic, isChallengeMode, displayHeroic, displayMythic, toggleDifficultyID = GetDifficultyInfo(textureInfo.difficultyId)
+		if not difficultyName then
+			difficultyName = ""
+		end
+		return DUNGEON_NAME_WITH_DIFFICULTY:format(textureInfo.title, difficultyName)
 	end
 end
 

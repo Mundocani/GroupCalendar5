@@ -1274,8 +1274,8 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 		changed = true
 	end
 	
-	if self.Locked ~= eventInfo.locked then
-		self.Locked = eventInfo.locked
+	if self.Locked ~= eventInfo.isLocked then
+		self.Locked = eventInfo.isLocked
 		changed = true
 	end
 	
