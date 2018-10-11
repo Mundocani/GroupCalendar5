@@ -82,20 +82,19 @@ function GroupCalendar.UI._EventInvite:Construct(pParentFrame)
 end
 
 function GroupCalendar.UI._EventInvite:AutoCompleteName()
-	local vText = self.CharacterName:GetText()
-	local vPosition = self.CharacterName:GetUTF8CursorPosition()
-	
-	local vName = GetAutoCompleteResults(
-	                       vText, 
+	local text = self.CharacterName:GetText()
+	local cursorPosition = self.CharacterName:GetUTF8CursorPosition()
+
+	local autocompleteResults = GetAutoCompleteResults(
+	                       text,
+	                       1, cursorPosition,
 	                       bit.bor(AUTOCOMPLETE_FLAG_FRIEND, AUTOCOMPLETE_FLAG_IN_GUILD, AUTOCOMPLETE_FLAG_IN_GROUP),
-	                       AUTOCOMPLETE_FLAG_NONE,
-	                       1, vPosition)
-	
-	if not vName then
+	                       AUTOCOMPLETE_FLAG_NONE)
+	if not autocompleteResults or #autocompleteResults == 0 then
 		return
 	end
 	
-	GroupCalendar:SetEditBoxAutoCompleteText(self.CharacterName, vName)
+	GroupCalendar:SetEditBoxAutoCompleteText(self.CharacterName, autocompleteResults[1].name)
 end
 
 function GroupCalendar.UI._EventInvite:SetEvent(pEvent, pIsNewEvent)

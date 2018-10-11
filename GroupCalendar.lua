@@ -245,16 +245,17 @@ function GroupCalendar:ReverseTable(pTable)
 	return vTable
 end
 
-function GroupCalendar:SetEditBoxAutoCompleteText(pEditBox, pText)
-	local vEditBoxText = pEditBox:GetText():upper()
-	local vEditBoxTextLength = vEditBoxText:len()
-	
-	pEditBox:SetText(pText)
-	pEditBox:HighlightText(vEditBoxTextLength, -1)
+function GroupCalendar:SetEditBoxAutoCompleteText(editBox, text)
+	local editBoxText = editBox:GetText():upper()
+	local editBoxTextLength = editBoxText:len()
+	local savedCursorPos = editBox:GetCursorPosition()
+
+	editBox:SetText(text)
+	editBox:HighlightText(editBoxTextLength, -1)
+	editBox:SetCursorPosition(savedCursorPos)
 end
 
-GroupCalendar.cDeformat =
-{
+GroupCalendar.cDeformat = {
 	s = "(.-)",
 	d = "(-?[%d]+)",
 	f = "(-?[%d%.e%+%-]+)",
