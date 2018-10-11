@@ -2136,36 +2136,56 @@ function Addon.UIElementsLib._TimePicker:Construct(pParent, pLabel)
 	self:SetWidth(185)
 	self:SetHeight(24)
 	
-	self.HourMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:HourMenuFunc(...) end)
+	self.HourMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (menu)
+		if self.Use24HTime then
+			for hour = 0, 23 do
+				menu:AddItemWithValue(hour, hour)
+			end
+		else
+			for hour = 1, 12 do
+				menu:AddItemWithValue(hour, hour)
+			end
+		end
+	end)
 	self.HourMenu:SetWidth(55)
 	self.HourMenu:SetPoint("LEFT", self, "LEFT")
-	self.HourMenu.ItemClickedFunc = function (pMenu, pValue)
+	self.HourMenu.DidSelectItemWithValue = function (menu, value)
+		self.HourMenu:SetSelectedValue(value)
 		self:TimeValueChanged()
 	end
 	
-	self.MinuteMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:MinuteMenuFunc(...) end)
+	self.MinuteMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (menu)
+		for minute = 0, 59, 5 do
+			menu:AddItemWithValue(string.format("%02d", minute), minute)
+		end
+	end)
 	self.MinuteMenu:SetWidth(55)
 	self.MinuteMenu:SetPoint("LEFT", self.HourMenu, "RIGHT", 8, 0)
-	self.MinuteMenu.ItemClickedFunc = function (pMenu, pValue)
+	self.MinuteMenu.DidSelectItemWithValue = function (menu, value)
+		self.MinuteMenu:SetSelectedValue(value)
 		self:TimeValueChanged()
 	end
 	
-	self.AMPMMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:AMPMMenuFunc(...) end)
+	self.AMPMMenu = Addon:New(Addon.UIElementsLib._TitledDropDownMenuButton, self, function (menu)
+		menu:AddItemWithValue("AM", "AM")
+		menu:AddItemWithValue("PM", "PM")
+	end)
 	self.AMPMMenu:SetWidth(55)
 	self.AMPMMenu:SetPoint("LEFT", self.MinuteMenu, "RIGHT", 8, 0)
-	self.AMPMMenu.ItemClickedFunc = function (pMenu, pValue)
+	self.AMPMMenu.DidSelectItemWithValue = function (menu, value)
+		self.AMPMMenu:SetSelectedValue(value)
 		self:TimeValueChanged()
 	end
 	
 	self:SetLabel(pLabel or "")
 end
 
-function Addon.UIElementsLib._TimePicker:SetEnabled(pEnabled)
-	self.Enabled = pEnabled
+function Addon.UIElementsLib._TimePicker:SetEnabled(enabled)
+	self.Enabled = enabled
 	
-	self.HourMenu:SetEnabled(pEnabled)
-	self.MinuteMenu:SetEnabled(pEnabled)
-	self.AMPMMenu:SetEnabled(pEnabled)
+	self.HourMenu:SetEnabled(enabled)
+	self.MinuteMenu:SetEnabled(enabled)
+	self.AMPMMenu:SetEnabled(enabled)
 end
 
 function Addon.UIElementsLib._TimePicker:SetTime(hour, minute)
@@ -2173,9 +2193,9 @@ function Addon.UIElementsLib._TimePicker:SetTime(hour, minute)
 	self.minute = minute
 
 	if not hour then
-		self.HourMenu:SetCurrentValueText(nil)
-		self.MinuteMenu:SetCurrentValueText(nil)
-		self.AMPMMenu:SetCurrentValueText(nil)
+		self.HourMenu:SetSelectedValue(nil)
+		self.MinuteMenu:SetSelectedValue(nil)
+		self.AMPMMenu:SetSelectedValue(nil)
 		return
 	end
 	
@@ -2206,14 +2226,14 @@ function Addon.UIElementsLib._TimePicker:SetTime(hour, minute)
 			displayHour = 12
 		end
 		
-		self.AMPMMenu:SetCurrentValueText(ampm)
+		self.AMPMMenu:SetSelectedValue(ampm)
 		self.AMPMMenu:Show()
 		
 		self.Use24HTime = false
 	end
 	
-	self.HourMenu:SetCurrentValueText(displayHour)
-	self.MinuteMenu:SetCurrentValueText(minute)
+	self.HourMenu:SetSelectedValue(displayHour)
+	self.MinuteMenu:SetSelectedValue(minute)
 end
 
 function Addon.UIElementsLib._TimePicker:TimeValueChanged()
@@ -2245,29 +2265,6 @@ function Addon.UIElementsLib._TimePicker:GetTime()
 	end
 	
 	return vHour, vMinute
-end
-
-function Addon.UIElementsLib._TimePicker:HourMenuFunc(menu)
-	if self.Use24HTime then
-		for hour = 0, 23 do
-			menu:AddItem(hour)
-		end
-	else
-		for hour = 1, 12 do
-			menu:AddItem(hour)
-		end
-	end
-end
-
-function Addon.UIElementsLib._TimePicker:MinuteMenuFunc(menu)
-	for minute = 0, 59, 5 do
-		menu:AddItem(string.format("%02d", minute))
-	end
-end
-
-function Addon.UIElementsLib._TimePicker:AMPMMenuFunc(pMenu)
-	pMenu:AddItem("AM")
-	pMenu:AddItem("PM")
 end
 
 function Addon.UIElementsLib._TimePicker:SetLabel(pLabel)
