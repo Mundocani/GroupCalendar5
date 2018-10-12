@@ -603,44 +603,6 @@ function GroupCalendar.UI._EventEditor:AddEventGroupItems(pMenu, pEventGroupID)
 end
 
 
-<<<<<<< HEAD
-function GroupCalendar.UI._EventEditor:EventModeMenuFunc(menu)
-	menu:AddToggle(
-		GroupCalendar.cSignupMode,
-		function ()
-			return self.Event.CalendarType == "GUILD_EVENT"
-		end,
-		function (menu, value)
-			self:ClearFocus()
-			self.Event:SetEventMode("SIGNUP")
-		end,
-		not CanEditGuildEvent()
-	)
-	menu:AddToggle(
-		GroupCalendar.cAnnounceMode,
-		function ()
-			return self.Event:IsAnnouncementEvent()
-		end,
-		function (menu, value)
-			self:ClearFocus()
-			self.Event:SetEventMode("ANNOUNCE")
-		end,
-		not CanEditGuildEvent()
-	)
-	menu:AddToggle(
-		GroupCalendar.cNormalMode,
-		function ()
-			return self.Event.CalendarType ~= "GUILD_EVENT" and not self.Event:IsAnnouncementEvent()
-		end,
-		function (menu, value)
-			self:ClearFocus()
-			self.Event:SetEventMode("NORMAL")
-		end
-	)
-end
-	
-=======
->>>>>>> e01274acece09119bb98eed9bf622f72a3506f19
 function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu)
 	local orderedEventTypes = C_Calendar.EventGetTypesDisplayOrdered()
 
