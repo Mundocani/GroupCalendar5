@@ -296,27 +296,29 @@ end
 
 function GroupCalendar.UI._EventViewer:UpdateInviteStatus()
 	if self.Event:UsesAttendance() then
-		local vInviteStatus = self.Event:GetInviteStatus(self.Event.OwnersName)
-		local vStatus = self.cStatusMessages[vInviteStatus] or string.format("Unknown (%s)", tostring(vInviteStatus))
+		local inviteStatus = self.Event:GetInviteStatus(self.Event.OwnersName)
+		local status = self.cStatusMessages[inviteStatus] or string.format("Unknown (%s)", tostring(inviteStatus))
 		
-		self.Status:SetText(GroupCalendar.cStatusFormat:format(vStatus).."\r"..CALENDAR_EVENT_CREATORNAME:format(self.Event.Creator or "unknown"))
+		self.Status:SetText(GroupCalendar.cStatusFormat:format(status).."\r"..CALENDAR_EVENT_CREATORNAME:format(self.Event.Creator or "unknown"))
 		
-		local vAttending = self.cStatusAttending[vInviteStatus]
+		local attending = self.cStatusAttending[inviteStatus]
 		
-		self.YesCheckButton:SetChecked(vAttending == "Y")
-		self.MaybeCheckButton:SetChecked(vAttending == "?")
-		self.NoCheckButton:SetChecked(vAttending == "N")
+		self.YesCheckButton:SetChecked(attending == "Y")
+		self.MaybeCheckButton:SetChecked(attending == "?")
+		self.NoCheckButton:SetChecked(attending == "N")
 		
 		self.Status:Show()
 		self.YesCheckButton:Show()
 		self.MaybeCheckButton:Show()
 		self.NoCheckButton:Show()
 		
-		local vCanRSVP = self.Event:CanRSVP()
-		
-		self.YesCheckButton:SetEnabled(vCanRSVP and (not self.Event:IsSignupEvent() or vAttending ~= "?"))
-		self.MaybeCheckButton:SetEnabled(vCanRSVP and (not self.Event:IsSignupEvent() or vAttending ~= "Y"))
-		self.NoCheckButton:SetEnabled(vCanRSVP)
+		local canRSVP = self.Event:CanRSVP()
+		local isSignUpEvent = self.Event:IsSignupEvent()
+		local isCreator = self.Event.ModStatus == "CREATOR"
+
+		self.YesCheckButton:SetEnabled(canRSVP)
+		self.MaybeCheckButton:SetEnabled(canRSVP)
+		self.NoCheckButton:SetEnabled(canRSVP and (not isSignUpEvent or not isCreator))
 	else
 		self.Status:Hide()
 		self.YesCheckButton:Hide()
