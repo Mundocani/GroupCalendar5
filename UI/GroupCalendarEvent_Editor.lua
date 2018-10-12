@@ -591,8 +591,8 @@ function GroupCalendar.UI._EventEditor:AddEventGroupItems(pMenu, pEventGroupID)
 end
 
 
-function GroupCalendar.UI._EventEditor:EventModeMenuFunc(pMenu, pMenuID, pLevel)
-	pMenu:AddToggle(
+function GroupCalendar.UI._EventEditor:EventModeMenuFunc(menu)
+	menu:AddToggle(
 		GroupCalendar.cSignupMode,
 		function ()
 			return self.Event.CalendarType == "GUILD_EVENT"
@@ -603,8 +603,8 @@ function GroupCalendar.UI._EventEditor:EventModeMenuFunc(pMenu, pMenuID, pLevel)
 		end,
 		not CanEditGuildEvent()
 	)
-	pMenu:AddToggle(
-		GroupCalendar.cSignupMode,
+	menu:AddToggle(
+		GroupCalendar.cAnnounceMode,
 		function ()
 			return self.Event:IsAnnouncementEvent()
 		end,
@@ -614,8 +614,8 @@ function GroupCalendar.UI._EventEditor:EventModeMenuFunc(pMenu, pMenuID, pLevel)
 		end,
 		not CanEditGuildEvent()
 	)
-	pMenu:AddToggle(
-		GroupCalendar.cSignupMode,
+	menu:AddToggle(
+		GroupCalendar.cNormalMode,
 		function ()
 			return self.Event.CalendarType ~= "GUILD_EVENT" and not self.Event:IsAnnouncementEvent()
 		end,
