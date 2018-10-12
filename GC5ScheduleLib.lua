@@ -990,7 +990,7 @@ function GroupCalendar._APIEventMethods:Open()
 		elseif self.CalendarType == "GUILD_ANNOUNCEMENT" then
 			GroupCalendar.WoWCalendar:CreateGuildAnnouncementEvent()
 		elseif self.CalendarType == "COMMUNITY_EVENT" then
-			GroupCalendar.WoWCaledar:CreateCommunitySignUpEvent()
+			GroupCalendar.WoWCalendar:CreateCommunitySignUpEvent()
 		else
 			GroupCalendar.WoWCalendar:CreatePlayerEvent()
 		end
@@ -2315,7 +2315,6 @@ function GroupCalendar._APIEventMethods:SetTentativeStatus()
 	if not self.Index
 	or (GroupCalendar.WoWCalendar.OpenedEvent == self and self.ModStatus == "CREATOR") then
 		self:SetInviteStatus(GroupCalendar.PlayerName, CALENDAR_INVITESTATUS_TENTATIVE)
-		
 		return
 	end
 	

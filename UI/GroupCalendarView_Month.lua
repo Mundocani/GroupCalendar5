@@ -101,18 +101,18 @@ function GroupCalendar.UI._MonthView:Construct(pParent)
 				vShading = 1
 			end
 			
-			local vDayFrame = GroupCalendar:New(GroupCalendar._DayFrame, self, self.WeekdaySpacing, vShading)
+			local dayFrame = GroupCalendar:New(GroupCalendar._DayFrame, self, self.WeekdaySpacing, vShading)
 			
 			if not vFirstDayFrame then
-				vFirstDayFrame = vDayFrame
-				vDayFrame:SetPoint("TOP", self.WeekdayTitles[1], "BOTTOM", 0, -8)
+				vFirstDayFrame = dayFrame
+				dayFrame:SetPoint("TOP", self.WeekdayTitles[1], "BOTTOM", 0, -8)
 			else
-				vDayFrame:SetPoint("TOPLEFT", vFirstDayFrame, "TOPLEFT", (vWeekday - 1) * self.WeekdaySpacing, -(vWeek - 1) * self.WeekdaySpacing)
+				dayFrame:SetPoint("TOPLEFT", vFirstDayFrame, "TOPLEFT", (vWeekday - 1) * self.WeekdaySpacing, -(vWeek - 1) * self.WeekdaySpacing)
 			end
 			
-			vDayFrame:SetMonthPosition(vWeekday, vWeek)
+			dayFrame:SetMonthPosition(vWeekday, vWeek)
 			
-			table.insert(self.DayFrames, vDayFrame)
+			table.insert(self.DayFrames, dayFrame)
 			
 			-- Leave room for the calendars picker
 			
@@ -171,10 +171,16 @@ end
 function GroupCalendar.UI._MonthView:OnShow()
 	-- Create the menus if they're not present yet
 	if not self.DayMenu then
-		self.DayMenu = GroupCalendar:New(GroupCalendar._DayContextMenu, self)
+		self.DayMenu = GroupCalendar:New(GroupCalendar._DayContextMenu)
+		for index, dayFrame in ipairs(self.DayFrames) do
+			dayFrame.DayMenu = self.DayMenu
+		end
 	end
 	if not self.EventMenu then
-		self.EventMenu = GroupCalendar:New(GroupCalendar._EventContextMenu, self)
+		self.EventMenu = GroupCalendar:New(GroupCalendar._EventContextMenu)
+		for index, dayFrame in ipairs(self.DayFrames) do
+			dayFrame.EventMenu = self.EventMenu
+		end
 	end
 	
 	GroupCalendar.EventLib:RegisterCustomEvent("GC5_CALENDAR_CHANGED", self.Refresh, self)
@@ -863,7 +869,7 @@ end
 
 function GroupCalendar._DayFrame:OnClick(pButton)
 	if pButton == "RightButton" then
-		self:GetParent().DayMenu:Toggle(self.Month, self.Day, self.Year)
+		self.DayMenu:Toggle(self, self.Month, self.Day, self.Year)
 	else
 		GroupCalendar.UI.Window:ShowDaySidebar(self.Month, self.Day, self.Year)
 	end
@@ -1065,7 +1071,7 @@ end
 
 function GroupCalendar._DayFrameEvent:OnClick(pButton)
 	if pButton == "RightButton" then
-		self.DayFrame:GetParent().EventMenu:Toggle(self.DayFrame.Month, self.DayFrame.Day, self.DayFrame.Year, self.Event)
+		self.DayFrame.EventMenu:Toggle(self, self.DayFrame.Month, self.DayFrame.Day, self.DayFrame.Year, self.Event)
 	else
 		GroupCalendar.UI.Window:ShowEventSidebar(self.Event)
 	end
@@ -1255,49 +1261,47 @@ end
 GroupCalendar._DayContextMenu = {}
 ----------------------------------------
 
-function GroupCalendar._DayContextMenu:New(pParent)
-	return GroupCalendar.UIElementsLib._ContextMenu:New(pParent)
+function GroupCalendar._DayContextMenu:Construct()
+	self:Inherit(GroupCalendar.UIElementsLib._ContextMenu)
 end
 
-function GroupCalendar._DayContextMenu:Construct(pParent)
-	self:Inherit(GroupCalendar.UIElementsLib._ContextMenu, pParent)
+function GroupCalendar._DayContextMenu:Toggle(frame, month, day, year)
+	self.Month, self.Day, self.Year = month, day, year
+	self:ToggleMenu(frame)
 end
 
-function GroupCalendar._DayContextMenu:Toggle(pMonth, pDay, pYear)
-	self.Month, self.Day, self.Year = pMonth, pDay, pYear
-	
-	self:ToggleMenu()
-end
-
-function GroupCalendar._DayContextMenu:InitMenu(pLevel, pMenuList)
+function GroupCalendar._DayContextMenu:AddItems(menu)
 	if not self.Month then
 		return
 	end
 	
-	self:AddCategoryItem(GroupCalendar.DateLib:GetLongDateString(GroupCalendar.DateLib:ConvertMDYToDate(self.Month, self.Day, self.Year), true))
+	menu:AddCategoryTitle(GroupCalendar.DateLib:GetLongDateString(GroupCalendar.DateLib:ConvertMDYToDate(self.Month, self.Day, self.Year), true))
 	
-	self:AddNormalItem(CALENDAR_CREATE_EVENT, "PLAYER")
+	menu:AddFunction(CALENDAR_CREATE_EVENT, function ()
+		GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, "PLAYER")
+		end)
+
 	if CanEditGuildEvent() then
-		self:AddNormalItem(CALENDAR_CREATE_GUILD_EVENT, "GUILD_EVENT")
-		self:AddNormalItem(CALENDAR_CREATE_GUILD_ANNOUNCEMENT, "GUILD_ANNOUNCEMENT")
+		menu:AddFunction(CALENDAR_CREATE_GUILD_EVENT, function ()
+			GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, "GUILD_EVENT")
+		end)
+
+		menu:AddFunction(CALENDAR_CREATE_GUILD_ANNOUNCEMENT, function ()
+			GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, "GUILD_ANNOUNCEMENT")
+		end)
 	end
-	
+	menu:AddFunction(CALENDAR_CREATE_COMMUNITY_EVENT, function ()
+		GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, "COMMUNITY_EVENT")
+		end)
+
 	local vCanCreate = GroupCalendar:CanCreateEventOnDate(self.Month, self.Day, self.Year)
 	local vCanPaste = vCanCreate and GroupCalendar.WoWCalendar:ContextMenuEventClipboard()
 	
 	if vCanCreate and vCanPaste then
-		self:AddDivider()
-		self:AddNormalItem(CALENDAR_PASTE_EVENT, "PASTE")
-	end
-end
-
-function GroupCalendar._DayContextMenu:ItemClicked(pValue)
-	if pValue == "PLAYER"
-	or pValue == "GUILD_EVENT"
-	or pValue == "GUILD_ANNOUNCEMENT" then
-		GroupCalendar.UI.Window:OpenNewEvent(self.Month, self.Day, self.Year, pValue)
-	elseif pValue == "PASTE" then
-		GroupCalendar.WoWCalendar:ContextMenuEventPaste(GroupCalendar:GetMonthOffset(self.Month, self.Year), self.Day);
+		menu:AddDivider()
+		menu:AddFunction(CALENDAR_PASTE_EVENT, function ()
+			GroupCalendar.WoWCalendar:ContextMenuEventPaste(GroupCalendar.WoWCalendar:GetMonthOffset(self.Month, self.Year), self.Day);
+		end)
 	end
 end
 
@@ -1305,92 +1309,89 @@ end
 GroupCalendar._EventContextMenu = {}
 ----------------------------------------
 
-function GroupCalendar._EventContextMenu:New(pParent)
-	return GroupCalendar._DayContextMenu:New(pParent)
+function GroupCalendar._EventContextMenu:Construct()
+	self:Inherit(GroupCalendar._DayContextMenu)
 end
 
-function GroupCalendar._EventContextMenu:Construct(pParent)
-	self:Inherit(GroupCalendar._DayContextMenu, pParent)
+function GroupCalendar._EventContextMenu:Toggle(frame, month, day, year, event)
+	self.Event = event
+	self.inherited.Toggle(self, frame, month, day, year)
 end
 
-function GroupCalendar._EventContextMenu:Toggle(pMonth, pDay, pYear, pEvent)
-	self.Event = pEvent
-	self.Inherited.Toggle(self, pMonth, pDay, pYear)
-end
-
-function GroupCalendar._EventContextMenu:AddTitleDivider()
-	if not self.AddedTitle then
-		self:AddCategoryItem(self.Event.Title)
-		self.AddedTitle = true
-	else
-		self:AddDivider()
-	end
-end
-
-function GroupCalendar._EventContextMenu:InitMenu(pLevel, pMenuList)
+function GroupCalendar._EventContextMenu:AddItems(menu)
 	if not self.Event then
 		return
 	end
 	
-	self.Inherited.InitMenu(self, pLevel, pMenuList)
-	
-	self.AddedTitle = false
+	self.inherited.AddItems(self, menu)
 	
 	-- Add editing items
 	
 	if self.Event:CanEdit() then
-		self:AddTitleDivider()
-		self:AddNormalItem(CALENDAR_COPY_EVENT, "COPY")
-		self:AddNormalItem(CALENDAR_DELETE_EVENT, "DELETE")
+		menu:AddDivider()
+		menu:AddCategoryTitle(self.Event.Title)
+
+		menu:AddFunction(CALENDAR_COPY_EVENT, function ()
+			self.Event:Copy()
+		end)
+		menu:AddFunction(CALENDAR_DELETE_EVENT, function ()
+			if self.Event then
+				GroupCalendar.UI:ShowConfirmDeleteEvent(function ()
+					self.Event:Delete()
+				end)
+			else
+				self.Event:Delete()
+			end
+		end)
 	end
 	
-	-- Add response items
-
-	if self.Event.CalendarType ~= "GUILD_ANNOUNCEMENT" then
+	-- Add response items. These commands aren't available to the creator of an event due to restrictions in Blizzard's API
+	if self.Event.ModStatus ~= "CREATOR" then
 		if self.Event:CanRSVP() then
-			self:AddTitleDivider()
+			menu:AddDivider()
 
 			local vAttending = GroupCalendar.UI._EventViewer.cStatusAttending[self.Event.InviteStatus]
-			
-			self:AddNormalItem(GroupCalendar.cYes:format(self.Event.OwnersName), "YES", nil, vAttending == "Y", self.Event.ModStatus == "CREATOR")
-			self:AddNormalItem(GroupCalendar.cMaybe, "MAYBE", nil, vAttending == "?", self.Event.ModStatus == "CREATOR")
-			self:AddNormalItem(GroupCalendar.cNo:format(self.Event.OwnersName), "NO", nil, vAttending == "N", self.Event.ModStatus == "CREATOR")
-		end
-		
-		if self.Event:CanRemove() then
-			self:AddTitleDivider()
-			self:AddNormalItem(CALENDAR_REMOVE_INVITATION, "REMOVE")
-		end
-		
-		if self.Event:CanComplain() then
-			self:AddTitleDivider()
-			self:AddNormalItem(REPORT_SPAM, "REPORT")
-		end
-	end
-end
 
-function GroupCalendar._EventContextMenu:ItemClicked(pValue)
-	if pValue == "COPY" then
-		self.Event:Copy()
-	elseif pValue == "DELETE" then
-		if self.Event then
-			GroupCalendar.UI:ShowConfirmDeleteEvent(function ()
-				self.Event:Delete()
-			end)
-		else
-			self.Event:Delete()
+			menu:AddToggle(GroupCalendar.cYes:format(self.Event.OwnersName),
+				function ()
+					local attending = GroupCalendar.UI._EventViewer.cStatusAttending[self.Event.InviteStatus]
+					return attending == "Y"
+				end,
+				function ()
+					self.Event:SetConfirmedStatus()
+				end)
+
+			menu:AddToggle(GroupCalendar.cMaybe,
+				function ()
+					local attending = GroupCalendar.UI._EventViewer.cStatusAttending[self.Event.InviteStatus]
+					return attending == "?"
+				end,
+				function ()
+					self.Event:SetTentativeStatus()
+				end)
+
+			menu:AddToggle(GroupCalendar.cNo:format(self.Event.OwnersName),
+				function ()
+					local attending = GroupCalendar.UI._EventViewer.cStatusAttending[self.Event.InviteStatus]
+					return attending == "N"
+				end,
+				function ()
+					self.Event:SetDeclinedStatus()
+				end)
 		end
-	elseif pValue == "YES" then
-		self.Event:SetConfirmedStatus()
-	elseif pValue == "MAYBE" then
-		self.Event:SetTentativeStatus()
-	elseif pValue == "NO" then
-		self.Event:SetDeclinedStatus()
-	elseif pValue == "REMOVE" then
-		self.Event:Remove()
-	elseif pValue == "REPORT" then
-		self.Event:Complain()
-	else
-		self.Inherited.ItemClicked(self, pValue)
+
+		if self.Event:CanRemove() then
+			menu:AddDivider()
+			menu:AddFunction(CALENDAR_REMOVE_INVITATION, function ()
+				self.Event:Remove()
+			end)
+		end
+
+		if self.Event:CanComplain() then
+			menu:AddDivider()
+			menu:AddFunction(REPORT_SPAM, function ()
+				self.Event:Complain()
+			end)
+		end
 	end
 end

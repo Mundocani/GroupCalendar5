@@ -1556,7 +1556,7 @@ function Addon.UIElementsLib._DropDownMenuButton:ToggleMenu()
 	self.items.selectedValue = self.selectedValue
 	self.dropDownMenu:Show(self.items, self.point, self.relativeTo, self.relativePoint, self.xOffset, self.yOffset)
 
-	-- Propagate value change messages for menus using the stateful idiom
+	-- Propagate value change messages for those menus using the stateful idiom
 	self.items.DidSelectItemWithValue = function (menu, value)
 		self:DidSelectItemWithValue(value)
 	end
@@ -1687,73 +1687,47 @@ end
 Addon.UIElementsLib._ContextMenu = {}
 ----------------------------------------
 
-function Addon.UIElementsLib._ContextMenu:New(pParent)
-	return CreateFrame("Frame", nil, pParent)
-end
-
-function Addon.UIElementsLib._ContextMenu:Construct(pParent)
-	UIDropDownMenu_Initialize(self, self.InitMenu)
-end
-
-function Addon.UIElementsLib._ContextMenu:ToggleMenu(pFrame)
+function Addon.UIElementsLib._ContextMenu:ToggleMenu(frame)
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-	
-	self.displayMode = "MENU"
-	
-	ToggleDropDownMenu(nil, nil, self, "cursor", 5, -5)
+
+	-- Hide the menu and leave if it's currently up
+	if self.dropDownMenu then
+		self.dropDownMenu:Hide()
+		self.dropDownMenu = nil
+		return
+	end
+
+	-- Position the menu
+	self.relativeTo = frame
+	self.point = "TOPLEFT"
+	self.relativePoint = self.AnchorRelativePoint or "BOTTOMLEFT"
+	self.xOffset = 0
+	self.yOffset = 0
+
+	-- Get the items
+	self.items = Addon:New(Addon.UIElementsLib._DropDownMenuItems, function ()
+		Addon.SchedulerLib:ScheduleTask(0.1, function ()
+			self.dropDownMenu:Hide()
+			self.dropDownMenu = nil
+		end)
+	end)
+	self:AddItems(self.items)
+
+	-- Show the menu
+	self.dropDownMenu = Addon:New(Addon.UIElementsLib._DropDownMenu)
+	self.items.selectedValue = self.selectedValue
+	self.dropDownMenu:Show(self.items, self.point, self.relativeTo, self.relativePoint, self.xOffset, self.yOffset)
+
+	-- Propagate value change messages for those menus using the stateful idiom
+	self.items.DidSelectItemWithValue = function (menu, value)
+		self:DidSelectItemWithValue(value)
+	end
 end
 
-function Addon.UIElementsLib._ContextMenu:InitMenu(pLevel, pMenuList)
-	self:AddNormalItem("Test 1", "TEST1")
-	self:AddNormalItem("Test 2", "TEST2")
-	self:AddNormalItem("Test 3", "TEST3")
-end
-
-function Addon.UIElementsLib._ContextMenu:AddNormalItem(pText, pID, pIcon, pChecked, pDisabled)
-	local vInfo = UIDropDownMenu_CreateInfo()
-	
-	vInfo.text = pText
-	vInfo.value = pID
-	vInfo.func = function (item, ...) self:ItemClicked(...) end
-	vInfo.arg1 = pID
-	vInfo.colorCode = NORMAL_FONT_COLOR_CODE
-	vInfo.icon = pIcon
-	vInfo.checked = pChecked
-	vInfo.disabled = pDisabled
-	
-	UIDropDownMenu_AddButton(vInfo, UIDROPDOWNMENU_MENU_LEVEL)
-end
-
-function Addon.UIElementsLib._ContextMenu:AddCategoryItem(pText)
-	local vInfo = UIDropDownMenu_CreateInfo()
-	
-	vInfo.text = pText
-	vInfo.notClickable = true
-	vInfo.notCheckable = true
-	vInfo.colorCode = HIGHLIGHT_FONT_COLOR_CODE
-	
-	UIDropDownMenu_AddButton(vInfo, UIDROPDOWNMENU_MENU_LEVEL)
-end
-
-function Addon.UIElementsLib._ContextMenu:AddChildMenu(pText, pID)
-	local vInfo = UIDropDownMenu_CreateInfo()
-	
-	vInfo.text = pText
-	vInfo.value = pID
-	vInfo.hasArrow = true
-	vInfo.colorCode = NORMAL_FONT_COLOR_CODE
-	
-	UIDropDownMenu_AddButton(vInfo, UIDROPDOWNMENU_MENU_LEVEL)
-end
-
-function Addon.UIElementsLib._ContextMenu:AddDivider()
-	local vInfo = UIDropDownMenu_CreateInfo()
-	
-	vInfo.text = " "
-	vInfo.notCheckable = true
-	vInfo.notClickable = true
-	
-	UIDropDownMenu_AddButton(vInfo, UIDROPDOWNMENU_MENU_LEVEL)
+function Addon.UIElementsLib._ContextMenu:AddItems(menu)
+	menu:AddItemWithValue("Test 1", "TEST1")
+	menu:AddItemWithValue("Test 2", "TEST2")
+	menu:AddItemWithValue("Test 3", "TEST3")
 end
 
 ----------------------------------------

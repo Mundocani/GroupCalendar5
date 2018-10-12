@@ -128,11 +128,12 @@ Addon.ObjectMetaTable = {__index = Addon.Object}
 function Addon.Object:inheritOver(methodTable, ...)
 	for key, value in pairs(methodTable) do
 		if self[key] then
-			if not self.Inherited then
-				self.Inherited = {}
+			if not self.inherited then
+				self.inherited = {}
+				self.Inherited = self.inherited
 			end
 			
-			self.Inherited[key] = self[key]
+			self.inherited[key] = self[key]
 		end
 		
 		self[key] = value
@@ -148,12 +149,13 @@ end
 function Addon.Object:inherit(methodTable, ...)
 	for key, value in pairs(methodTable) do
 		if self[key] then
-			if not self.Inherited then
-				self.Inherited = {}
+			if not self.inherited then
+				self.inherited = {}
+				self.Inherited = self.inherited
 			end
 			
-			if not self.Inherited[key] then
-				self.Inherited[key] = value
+			if not self.inherited[key] then
+				self.inherited[key] = value
 			end
 		else
 			self[key] = value

@@ -306,7 +306,7 @@ GroupCalendar.cRestart = "Restart"
 
 GroupCalendar.cAboutTitle = "About Group Calendar %s"
 GroupCalendar.cAboutAuthor = "Designed and written by John Stephen"
-GroupCalendar.cAboutCopyright = "Copyright 2005 - 2016 John Stephen, wobbleworks.com"
+GroupCalendar.cAboutCopyright = "Copyright 2018 John Stephen. This software is licensed under the MIT license. Please see the included LICENSE.txt file for details."
 GroupCalendar.cAboutThanks = "Many thanks to all fans and supporters.  I hope my addons add to your gaming enjoyment as much as building them adds to mine."
 
 -- Partners tab
