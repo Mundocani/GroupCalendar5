@@ -660,7 +660,7 @@ function GroupCalendar.UI._EventGroup:Refresh()
 		end
 	end
 	
-	self.ViewMenu:SetCurrentValueText(string.format(GroupCalendar.cViewByFormat, self.GroupByTitle[self.GroupBy], self.SortByTitle[self.SortBy]))
+	self.ViewMenu:SetSelectedValue(string.format(GroupCalendar.cViewByFormat, self.GroupByTitle[self.GroupBy], self.SortByTitle[self.SortBy]))
 	
 	--
 	
