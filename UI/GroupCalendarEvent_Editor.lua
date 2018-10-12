@@ -112,7 +112,13 @@ function GroupCalendar.UI._EventEditor:Initialize()
 		self.Event:SetTitle(pEditBox:GetText())
 	end)
 	
-	self.EventModeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:EventModeMenuFunc(...) end, 220)
+	self.EventModeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self,
+		function (menu)
+			menu:AddItemWithValue(GroupCalendar.cSignupMode, "SIGNUP")
+			menu:AddItemWithValue(GroupCalendar.cAnnounceMode, "ANNOUNCE")
+			menu:AddItemWithValue(GroupCalendar.cCommunityMode, "COMMUNITY")
+			menu:AddItemWithValue(GroupCalendar.cNormalMode, "NORMAL")
+		end, 220)
 	self.EventModeMenu:SetPoint("TOPLEFT", self.EventTitle, "BOTTOMLEFT", 0, -self.ItemSpacing)
 	self.EventModeMenu:SetTitle(GroupCalendar.cEventModeLabel)
 	function self.EventModeMenu.DidSelectItemWithValue(menu, value)
@@ -351,6 +357,8 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 		self.EventModeMenu:SetSelectedValue("ANNOUNCE")
 	elseif self.Event.CalendarType == "GUILD_EVENT" then
 		self.EventModeMenu:SetSelectedValue("SIGNUP")
+	elseif self.Event.CalendarType == "COMMUNITY_EVENT" then
+		self.EventModeMenu:SetSelectedValue("COMMUNITY")
 	else
 		self.EventModeMenu:SetSelectedValue("NORMAL")
 	end
@@ -481,6 +489,8 @@ function GroupCalendar.UI._EventEditor:LoadEventDefaults(pTemplate)
 			self.Event:SetEventMode("ANNOUNCE")
 		elseif pTemplate.CalendarType == "GUILD_EVENT" then
 			self.Event:SetEventMode("SIGNUP")
+		elseif pTemplate.CalendarType == "COMMUNITY_EVENT" then
+			self.Event:SetEventMode("COMMUNITY")
 		else
 			self.Event:SetEventMode("NORMAL")
 		end
@@ -593,12 +603,6 @@ function GroupCalendar.UI._EventEditor:AddEventGroupItems(pMenu, pEventGroupID)
 end
 
 
-function GroupCalendar.UI._EventEditor:EventModeMenuFunc(menu)
-	menu:AddItemWithValue(GroupCalendar.cSignupMode, "SIGNUP")
-	menu:AddItemWithValue(GroupCalendar.cAnnounceMode, "ANNOUNCE")
-	menu:AddItemWithValue(GroupCalendar.cNormalMode, "NORMAL")
-end
-	
 function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu)
 	local orderedEventTypes = C_Calendar.EventGetTypesDisplayOrdered()
 

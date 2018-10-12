@@ -156,6 +156,7 @@ GroupCalendar.cAutoConfirmLimitsLabel = "Limits..."
 GroupCalendar.cNormalMode = "Private event"
 GroupCalendar.cAnnounceMode = "Guild announcement"
 GroupCalendar.cSignupMode = "Guild event"
+GroupCalendar.cCommunityMode = "Community event"
 
 GroupCalendar.cLockout0 = "at the start"
 GroupCalendar.cLockout15 = "15 minutes early"
