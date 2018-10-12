@@ -145,7 +145,7 @@ GroupCalendar.Themes.BFA =
 	Foreground = GroupCalendar.UI.AddonPath.."Textures\\DayFrameFront-Square",
 	RandomTile = false,
 	UseShading = false,
-	BackgroundBrightness = 0.2,
+	BackgroundBrightness = 0.25,
 }
 
 ----------------------------------------
