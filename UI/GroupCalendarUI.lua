@@ -69,7 +69,7 @@ function GroupCalendar.UI:Initialize()
 	GroupCalendar.EventLib:RegisterEvent("CALENDAR_UPDATE_ERROR", self.CalendarUpdateError, self, true)
 end
 
-function GroupCalendar.UI:CalendarUpdateError(pMessage)
+function GroupCalendar.UI:CalendarUpdateError(message)
 	if not StaticPopupDialogs.CALENDAR_ERROR then
 		StaticPopupDialogs.CALENDAR_ERROR =
 		{
@@ -84,7 +84,8 @@ function GroupCalendar.UI:CalendarUpdateError(pMessage)
 		}
 	end
 	
-	StaticPopup_Show("CALENDAR_ERROR", pMessage)
+	local localizedMessage = _G[message] or message
+	StaticPopup_Show("CALENDAR_ERROR", localizedMessage)
 end
 
 table.insert(GroupCalendar.CommandHelp, HIGHLIGHT_FONT_COLOR_CODE.."/cal show"..NORMAL_FONT_COLOR_CODE.." "..GroupCalendar.cHelpShow)

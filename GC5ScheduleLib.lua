@@ -2975,6 +2975,10 @@ end
 function GroupCalendar.WoWCalendar:GetEventInfo()
 	local eventInfo  = C_Calendar.GetEventInfo()
 	
+	if not eventInfo then
+		return nil
+	end
+	
 	eventInfo.title = self:ProcessTitle(eventInfo.title)
 	eventInfo.description = self:ProcessDescription(eventInfo.description)
 	
