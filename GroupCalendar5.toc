@@ -14,7 +14,7 @@
 ## SavedVariables: GroupCalendar_Data, GroupCalendarClock_Data, GroupCalendarUI_Data
 ## OptionalDeps: GuildMains
 
-## X-ReloadTag: 2
+## X-ReloadTag: 3
 
 GroupCalendar_Prefix.lua
 
@@ -34,14 +34,14 @@ GroupCalendar_Strings_ru.lua
 GroupCalendar_Strings_tw.lua
 
 Libraries/MC2AddonLib/MC2AddonLib.lua
-MC2DebugLib.lua
-MC2EventLib.lua
-MC2SchedulerLib.lua
-MC2DateLib.lua
-MC2BroadcastLib.lua
-MC2UIElementsLib.lua
-MC2GuildLib.lua
-MC2RaidLib.lua
+Libraries/MC2DebugLib/MC2DebugLib.lua
+Libraries/MC2EventLib/MC2EventLib.lua
+Libraries/MC2SchedulerLib/MC2SchedulerLib.lua
+Libraries/MC2DateLib/MC2DateLib.lua
+Libraries/MC2BroadcastLib/MC2BroadcastLib.lua
+Libraries/MC2UIElementsLib/MC2UIElementsLib.lua
+Libraries/MC2GuildLib/MC2GuildLib.lua
+Libraries/MC2RaidLib/MC2RaidLib.lua
 
 GC5ScheduleLib.lua
 GC5ClockLib.lua

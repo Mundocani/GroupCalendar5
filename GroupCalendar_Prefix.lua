@@ -12,7 +12,7 @@ local AddonName
 AddonName, GroupCalendar = ...
 
 -- Check for attempts to upgrade when there are new files
-if tonumber(GetAddOnMetadata(AddonName, "X-ReloadTag")) ~= 2 then
+if tonumber(GetAddOnMetadata(AddonName, "X-ReloadTag")) ~= 3 then
 	StaticPopupDialogs.GC5_CANT_RELOADUI =
 	{
 		text = "You must completely restart WoW to upgrade to this version of Group Calendar",

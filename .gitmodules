@@ -1,3 +1,30 @@
 [submodule "Libraries/MC2AddonLib"]
 	path = Libraries/MC2AddonLib
 	url = https://github.com/Mundocani/MC2AddonLib
+[submodule "Libraries/MC2BroadcastLib"]
+	path = Libraries/MC2BroadcastLib
+	url = https://github.com/Mundocani/MC2BroadcastLib
+[submodule "Libraries/MC2DataChannelLib"]
+	path = Libraries/MC2DataChannelLib
+	url = https://github.com/Mundocani/MC2DataChannelLib
+[submodule "Libraries/MC2DateLib"]
+	path = Libraries/MC2DateLib
+	url = https://github.com/Mundocani/MC2DateLib
+[submodule "Libraries/MC2DebugLib"]
+	path = Libraries/MC2DebugLib
+	url = https://github.com/Mundocani/MC2DebugLib
+[submodule "Libraries/MC2EventLib"]
+	path = Libraries/MC2EventLib
+	url = https://github.com/Mundocani/MC2EventLib
+[submodule "Libraries/MC2GuildLib"]
+	path = Libraries/MC2GuildLib
+	url = https://github.com/Mundocani/MC2GuildLib
+[submodule "Libraries/MC2RaidLib"]
+	path = Libraries/MC2RaidLib
+	url = https://github.com/Mundocani/MC2RaidLib
+[submodule "Libraries/MC2SchedulerLib"]
+	path = Libraries/MC2SchedulerLib
+	url = https://github.com/Mundocani/MC2SchedulerLib
+[submodule "Libraries/MC2UIElementsLib"]
+	path = Libraries/MC2UIElementsLib
+	url = https://github.com/Mundocani/MC2UIElementsLib
