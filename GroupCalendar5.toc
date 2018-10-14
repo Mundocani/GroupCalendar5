@@ -18,8 +18,6 @@
 
 GroupCalendar_Prefix.lua
 
-MC2AddonLib.lua
-
 utf8data.lua
 utf8.lua
 
@@ -35,7 +33,7 @@ GroupCalendar_Strings_kr.lua
 GroupCalendar_Strings_ru.lua
 GroupCalendar_Strings_tw.lua
 
-MC2AddonLib.lua
+Libraries/MC2AddonLib/MC2AddonLib.lua
 MC2DebugLib.lua
 MC2EventLib.lua
 MC2SchedulerLib.lua

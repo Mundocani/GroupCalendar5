@@ -1,0 +1,3 @@
+[submodule "Libraries/MC2AddonLib"]
+	path = Libraries/MC2AddonLib
+	url = https://github.com/Mundocani/MC2AddonLib
