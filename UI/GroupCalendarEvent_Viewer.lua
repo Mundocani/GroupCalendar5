@@ -342,25 +342,12 @@ function GroupCalendar.UI._EventViewer:NoButtonClicked()
 	self:Refresh()
 end
 
-function GroupCalendar:SetEventBackground(pEvent, pTexture, pWidth, pHeight)
-	local vTextureID
+function GroupCalendar:SetEventBackground(event, texture, width, height)
+	local texturePath, texCoords = GroupCalendar:GetTextureFile(event.TextureID, event.CalendarType, event.NumSequenceDays ~= 2 and event.SequenceType or "", event.EventType, event.TitleTag)
 	
-	if pEvent:IsPlayerCreated() and pEvent.TextureIndex then
-		local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(pEvent.EventType)
-		local vTexture = vEventTypeTextures[pEvent.TextureIndex]
-		
-		vTextureID = vTexture and vTexture.TextureName
-	else
-		vTextureID = pEvent.TextureID
+	if texturePath then
+		GroupCalendar:SetClippedTexture(texture, texturePath, texCoords, width, height)
 	end
-	
-	local vTexturePath, vTexCoords = GroupCalendar:GetTextureFile(vTextureID, pEvent.CalendarType, pEvent.NumSequenceDays ~= 2 and pEvent.SequenceType or "", pEvent.EventType, pEvent.TitleTag)
-	
-	if pEvent.SequenceType == "ONGOING" then
-		vTexturePath, vTexCoords = GroupCalendar:GetTextureFile(vTextureID, pEvent.CalendarType, "START", pEvent.EventType)
-	end
-	
-	GroupCalendar:SetClippedTexture(pTexture, vTexturePath, vTexCoords, pWidth, pHeight)
 end
 
 function GroupCalendar:SetClippedTexture(pTexture, pTexturePath, pTexCoords, pWidth, pHeight)

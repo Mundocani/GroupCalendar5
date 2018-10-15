@@ -577,7 +577,7 @@ function GroupCalendar.UI._EventEditor:SetEventType(eventType, textureIndex)
 	self.Event:SetTitleTag(titleTag)
 	
 	if useDefaultTitle then
-		local defaultTitle = self:GetDefaultTitle()
+		local defaultTitle = self:GetDefaultTitle() or ""
 		self.Event:SetTitle(defaultTitle)
 		self.EventTitle:SetText(defaultTitle)
 	end

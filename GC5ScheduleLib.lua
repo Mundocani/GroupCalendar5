@@ -2805,18 +2805,18 @@ function GroupCalendar.WoWCalendar:ProcessTitle(pTitle)
 	return self.Title
 end
 
-function GroupCalendar.WoWCalendar:ProcessDescription(pDescription)
-	local vTagStart, vTagEnd, vTagData
+function GroupCalendar.WoWCalendar:ProcessDescription(description)
+	local tagStart, tagEnd, tagData
 	
-	if pDescription then
-		vTagStart, vTagEnd, vTagData = pDescription:find("%s?%[(.*)%]")
+	if description then
+		tagStart, tagEnd, tagData = description:find("%s?%[(.*)%]")
 	end
 	
-	if vTagStart then
-		self.Description = pDescription:sub(1, vTagStart - 1)..pDescription:sub(vTagEnd + 1)
-		self.DescriptionTag = vTagData
+	if tagStart then
+		self.Description = description:sub(1, tagStart - 1)..description:sub(tagEnd + 1)
+		self.DescriptionTag = tagData
 	else
-		self.Description = pDescription
+		self.Description = description
 		self.DescriptionTag = nil
 	end
 	
@@ -3148,6 +3148,9 @@ GroupCalendar.CALENDAR_CALENDARTYPE_TEXTURES =
 --		[""]				= "",
 	},
 	["RAID_RESET"] = {
+--		[""]				= "",
+	},
+	["COMMUNITY_EVENT"] = {
 --		[""]				= "",
 	},
 }
