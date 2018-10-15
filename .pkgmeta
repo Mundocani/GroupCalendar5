@@ -1,2 +1,24 @@
 ignore:
 	- Artwork
+
+externals:
+    Libraries/MC2AddonLib:
+        url: https://github.com/Mundocani/MC2AddonLib.git
+    Libraries/MC2BroadcastLib:
+        url: https://github.com/Mundocani/MC2BroadcastLib.git
+    Libraries/MC2DataChannelLib:
+        url: https://github.com/Mundocani/MC2DataChannelLib.git
+    Libraries/MC2DateLib:
+        url: https://github.com/Mundocani/MC2DateLib.git
+    Libraries/MC2DebugLib:
+        url: https://github.com/Mundocani/MC2DebugLib.git
+    Libraries/MC2EventLib:
+        url: https://github.com/Mundocani/MC2EventLib.git
+    Libraries/MC2GuildLib:
+        url: https://github.com/Mundocani/MC2GuildLib.git
+    Libraries/MC2RaidLib:
+        url: https://github.com/Mundocani/MC2RaidLib.git
+    Libraries/MC2SchedulerLib:
+        url: https://github.com/Mundocani/MC2SchedulerLib.git
+    Libraries/MC2UIElementsLib:
+        url: https://github.com/Mundocani/MC2UIElementsLib.git
