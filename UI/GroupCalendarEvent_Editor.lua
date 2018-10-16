@@ -50,7 +50,7 @@ function GroupCalendar.UI._EventEditor:Initialize()
 				local alreadyAddedDifficulties = {}
 				for i, difficultyInfo in ipairs(eventTex.difficulties) do
 					if not alreadyAddedDifficulties[difficultyInfo.difficultyName] then
-						local item = menu:AddToggleWithIcon(difficultyInfo.difficultyName, difficultyInfo.textureIndex, nil,
+						local item = menu:AddToggle(difficultyInfo.difficultyName,
 							function ()
 								local checked = textureIndex == difficultyInfo.textureIndex or nil
 								return checked
@@ -137,8 +137,8 @@ function GroupCalendar.UI._EventEditor:Initialize()
 		end, 85)
 	self.CommunityMenu:SetPoint("TOPLEFT", self.EventModeMenu, "TOPRIGHT", 10, 0)
 	function self.CommunityMenu.DidSelectItemWithValue(menu, value)
---		self:ClearFocus()
---		self.Event:SetCommunity(value)
+		self:ClearFocus()
+		self.Event:SetClubID(value)
 	end
 
 	self.LevelRangePicker = GroupCalendar:New(GroupCalendar.UIElementsLib._LevelRangePicker, self, GroupCalendar.cLevelsLabel)
@@ -343,11 +343,15 @@ function GroupCalendar.UI._EventEditor:OnShow()
 	PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
 
 	GroupCalendar.EventLib:RegisterCustomEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
-	
+
 	if not self.Event then
 		return
 	end
 	
+	GroupCalendar.EventLib:RegisterEvent("CALENDAR_UPDATE_EVENT", self.CalendarUpdateEvent, self)
+
+	self:UpdateControlsFromEvent()
+
 	if self.EventTitle.Enabled then
 		self.EventTitle:SetFocus()
 	end
@@ -355,10 +359,16 @@ end
 
 function GroupCalendar.UI._EventEditor:OnHide()
 	GroupCalendar.EventLib:UnregisterEvent("GC5_PREFS_CHANGED", self.UpdateControlsFromEvent, self)
-	
+
 	if not self.Event then
 		return
 	end
+
+	GroupCalendar.EventLib:UnregisterEvent("CALENDAR_UPDATE_EVENT", self.CalendarUpdateEvent, self)
+end
+
+function GroupCalendar.UI._EventEditor:CalendarUpdateEvent()
+	self:UpdateControlsFromEvent()
 end
 
 function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
