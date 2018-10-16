@@ -1,3 +1,8 @@
+Version 5.10 changes
+
+* FEATURE: Updated for patch 8.0
+* FEATURE: Added support for Communities
+
 Version 5.9.1 changes
 
 * FEATURE: Updated for patch 7.3.1 (thank you to kived for the fixes)
