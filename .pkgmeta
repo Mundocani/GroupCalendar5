@@ -1,6 +1,8 @@
 ignore:
 	- Artwork
 
+enable-nolib-creation: no
+
 externals:
     Libraries/MC2AddonLib:
         url: https://github.com/Mundocani/MC2AddonLib.git
