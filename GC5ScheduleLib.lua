@@ -1028,6 +1028,14 @@ function GroupCalendar._APIEventMethods:InitializeNewEvent()
 	self:GetEventInfo()
 end
 
+function GroupCalendar._APIEventMethods:SetClubID(clubID)
+	if self.Index then
+		return -- Can't change club on an existing event
+	end
+
+	GroupCalendar.WoWCalendar:EventSetClubID(clubID)
+end
+
 function GroupCalendar._APIEventMethods:SetEventMode(pMode)
 	if self.Index then
 		return -- Can't change mode on an existing event
