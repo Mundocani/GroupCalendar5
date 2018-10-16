@@ -1029,10 +1029,14 @@ function GroupCalendar._APIEventMethods:InitializeNewEvent()
 end
 
 function GroupCalendar._APIEventMethods:SetClubID(clubID)
+	assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
+
 	if self.Index then
-		return -- Can't change club on an existing event
+		assert(false, "Can't change club after an event is created")
+		return
 	end
 
+	self.ClubID = clubID
 	GroupCalendar.WoWCalendar:EventSetClubID(clubID)
 end
 
@@ -1169,49 +1173,65 @@ function GroupCalendar._APIEventMethods:Delete()
 	end
 end
 
+function GroupCalendar._APIEventMethods:GetDefaultTitle()
+	local eventTypeTextures = GroupCalendar:GetEventTypeTextures(self.EventType)
+	local textureInfo = eventTypeTextures and eventTypeTextures[self.TextureIndex]
+	if not textureInfo then
+		return
+	end
+
+	if not textureInfo.difficultyId then
+		return textureInfo.title
+	end
+
+	local difficultyName, instanceType, isHeroic, isChallengeMode, displayHeroic, displayMythic, toggleDifficultyID = GetDifficultyInfo(textureInfo.difficultyId)
+	if not difficultyName then
+		return textureInfo.title
+	else
+		return DUNGEON_NAME_WITH_DIFFICULTY:format(textureInfo.title, difficultyName)
+	end
+end
+
 function GroupCalendar._APIEventMethods:LoadDefaults()
-	local vPartySize, vMinLevel = self:GetDefaultPartySize()
-	
-	--[[ Don't bother setting default limits since they're not supported yet
-	if vPartySize then
-		self.Limits = GroupCalendar:DuplicateTable(GroupCalendar.DefaultLimits[vPartySize], true)
+	-- Get the default party size and level
+	local partySize, minLevel = self:GetDefaultPartySize()
+
+	-- Use the default limits
+	if partySize then
+		self.Limits = GroupCalendar:DuplicateTable(GroupCalendar.DefaultLimits[partySize], true)
 	end
-	]]
-	
-	self:SetLevelRange(vMinLevel, nil)
-	
-	local vEventTypeTextures = GroupCalendar:GetEventTypeTextures(self.EventType)
-	
-	if vEventTypeTextures and vEventTypeTextures[self.TextureIndex] then
-		self:SetTitle(vEventTypeTextures[self.TextureIndex].Name)
+
+	-- Set the default level range
+	self:SetLevelRange(minLevel, nil)
+
+	-- Look up the default title and set it
+	local defaultTitle = self:GetDefaultTitle()
+	if defaultTitle then
+		self:SetTitle(defaultTitle)
 	end
-	
-	local vDefaults = self.TitleTag
-	              and GroupCalendar.TitleTagInfo[self.TitleTag]
-	              and GroupCalendar.TitleTagInfo[self.TitleTag].Defaults
-	
-	if vDefaults then
+
+	-- Get the default settings if it's a custom event type (has a titleTag)
+	local defaults = self.TitleTag and GroupCalendar.TitleTagInfo[self.TitleTag] and GroupCalendar.TitleTagInfo[self.TitleTag].Defaults
+	if defaults then
+
 		-- Change the mode
-		
-		if vDefaults.CalendarType == "GUILD_ANNOUNCEMENT" then
+		if defaults.CalendarType == "GUILD_ANNOUNCEMENT" then
 			self:SetEventMode("ANNOUNCE")
-		elseif vDefaults.CalendarType == "GUILD_EVENT" then
+		elseif defaults.CalendarType == "GUILD_EVENT" then
 			self:SetEventMode("SIGNUP")
-		elseif vDefaults.CalendarType == "COMMUNITY_EVENT" then
+		elseif defaults.CalendarType == "COMMUNITY_EVENT" then
 			self:SetEventMode("COMMUNITY")
-		elseif vDefaults.CalendarType == "PLAYER" then
+		elseif defaults.CalendarType == "PLAYER" then
 			self:SetEventMode("NORMAL")
 		end
 		
 		-- Set the title
-		
-		if vDefaults.Title then
-			self:SetTitle(vDefaults.Title:format(GroupCalendar.PlayerName))
+		if defaults.Title then
+			self:SetTitle(defaults.Title:format(GroupCalendar.PlayerName))
 		end
 	end
 	
 	-- Clear out fields which aren't used
-	
 	if self:IsAllDayEvent() then
 		self.Hour = 0 -- Midnight
 		self.Minute = 0
@@ -1221,6 +1241,7 @@ function GroupCalendar._APIEventMethods:LoadDefaults()
 	if not self:UsesLevelLimits() then
 		self.MinLevel = nil
 		self.MaxLevel = nil
+		self.Limits = nil
 	end
 end
 
@@ -2608,6 +2629,7 @@ function GroupCalendar._APIEventMethods:EventClosed()
 end
 
 function GroupCalendar._APIEventMethods:CalendarUpdateEvent()
+	-- Fetch the event info from WoW's APIs. If the event has changed then this will trigger a "CHANGED" broadcast automatically
 	self:GetEventInfo()
 end
 
