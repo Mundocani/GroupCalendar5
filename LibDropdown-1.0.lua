@@ -174,7 +174,6 @@ local function AcquireSlider()
 		end
 		local n, x = self:GetMinMaxValues()
 		local ev = x - nv
-		GroupCalendar:TestMessage("ev %s", tostring(ev))
 		frame.text:SetText(ev)
 
 		if self.ValueChanged then
@@ -377,7 +376,6 @@ do
 	end
 	
 	local function settext(self, t)
-		GroupCalendar:TestMessage("self.text  = t %s", tostring(t))
 		self.text:SetText(t)
 	end
 	
@@ -458,7 +456,6 @@ do
 		self.text:SetPoint("RIGHT", self, "RIGHT", -16, 0)
 		self.text:SetTextColor(1, 0.8, 0, 1)
 		self.clickable = false
-		GroupCalendar:TestMessage("makeTitle %s", tostring(t))
 		if t then self.text:SetText(t) end
 	end
 	
@@ -472,7 +469,6 @@ do
 		text:SetJustifyH("LEFT")
 		self.text:SetTextColor(1, 1, 1, 1)
 		self.clickable = true
-		GroupCalendar:TestMessage("makeButton %s", tostring(t))
 		if t then text:SetText(t) end
 	end
 
@@ -728,7 +724,6 @@ do
 
 	function grefresh(self)
 		local isDisabled = false
-		GroupCalendar:TestMessage("data.name %s", tostring(self.data.name))
 		self:SetText(self.data.name)
 		self.desc = self.data.desc
 		if type(self.data.disabled) == "function" then
@@ -783,7 +778,6 @@ do
 	-- execute
 	function Ace3.execute(k, v, parent)
 		local b = setup(k, v, parent)
-		GroupCalendar:TestMessage("v.name %s", tostring(v.name))
 		b:SetText(v.name)
 		b.desc = v.desc
 		b.OnClick = function(self)
@@ -931,7 +925,6 @@ do
 			if type(t) == "table" then
 				for k, v in pairs(t) do
 					local b = parent:AcquireButton()
-					GroupCalendar:TestMessage("v %s", tostring(v))
 					b:SetText(v)
 					b.value = k
 					b.OnClick = function(self)
