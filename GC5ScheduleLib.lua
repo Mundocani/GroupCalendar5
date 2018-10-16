@@ -1165,7 +1165,7 @@ function GroupCalendar._APIEventMethods:Delete()
 		if self.ModStatus == "CREATOR" then
 			GroupCalendar.WoWCalendar:ContextMenuEventRemove()
 		else
-			GroupCalendar.WoWCalendar:ContextInviteRemove()
+			GroupCalendar.WoWCalendar:ContextMenuInviteRemove()
 		end
 
 	-- Nothing to do for new events
@@ -2330,7 +2330,7 @@ function GroupCalendar._APIEventMethods:SetConfirmedStatus()
 		if self:IsSignupEvent() then
 			GroupCalendar.WoWCalendar:ContextMenuEventSignUp()
 		else
-			GroupCalendar.WoWCalendar:ContextInviteAvailable()
+			GroupCalendar.WoWCalendar:ContextMenuInviteAvailable()
 		end
 		
 		return
@@ -2366,7 +2366,7 @@ function GroupCalendar._APIEventMethods:SetTentativeStatus()
 	
 	if GroupCalendar.WoWCalendar.OpenedEvent ~= self then
 		self:ContextSelectEvent()
-		GroupCalendar.WoWCalendar:ContextInviteTentative()
+		GroupCalendar.WoWCalendar:ContextMenuInviteTentative()
 		
 		return
 	end
@@ -2404,9 +2404,9 @@ function GroupCalendar._APIEventMethods:SetDeclinedStatus()
 		self:ContextSelectEvent()
 		
 		if self:IsSignupEvent() then
-			GroupCalendar.WoWCalendar:ContextInviteRemove()
+			GroupCalendar.WoWCalendar:ContextMenuInviteRemove()
 		else
-			GroupCalendar.WoWCalendar:ContextInviteDecline()
+			GroupCalendar.WoWCalendar:ContextMenuInviteDecline()
 		end
 		
 		return
@@ -2570,7 +2570,7 @@ end
 
 function GroupCalendar._APIEventMethods:Remove()
 	self:ContextSelectEvent()
-	GroupCalendar.WoWCalendar:ContextInviteRemove()
+	GroupCalendar.WoWCalendar:ContextMenuInviteRemove()
 end
 
 function GroupCalendar._APIEventMethods:IsGuildWide()
