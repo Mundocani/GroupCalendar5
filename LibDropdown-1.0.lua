@@ -3,7 +3,7 @@
 -- * Added an optional cleanup function to menus so their owner can be notified if they're released
 
 local MAJOR = "LibDropdownMC-1.0"
-local MINOR = 1
+local MINOR = 2
 
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -744,6 +744,15 @@ do
 			else
 				self:Enable()
 			end
+		end
+		if self.data.icon then
+			self.swatch:Show()
+			self.swatch.tex:Hide()
+			self.swatch:SetNormalTexture(self.data.icon)
+		else
+			self.swatch:Hide()
+			self.swatch.tex:Show()
+			self.swatch:SetNormalTexture([[Interface\ChatFrame\ChatFrameColorSwatch]])
 		end
 		return isDisabled
 	end
