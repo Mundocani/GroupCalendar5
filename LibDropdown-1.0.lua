@@ -1,6 +1,7 @@
 -- This library has been modified and so I've changed the major name to use an MC suffix. Changes are:
 -- * Added support for a color parameter on items to tint the text
 -- * Added an optional cleanup function to menus so their owner can be notified if they're released
+-- * Added support for items with an icon
 
 local MAJOR = "LibDropdownMC-1.0"
 local MINOR = 2
