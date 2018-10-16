@@ -21,6 +21,7 @@ GroupCalendar_Prefix.lua
 utf8data.lua
 utf8.lua
 
+LibStub.lua
 LibDropdown-1.0.lua
 
 GroupCalendar_Strings.lua
