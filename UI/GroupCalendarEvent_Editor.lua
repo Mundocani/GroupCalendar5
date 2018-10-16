@@ -34,6 +34,15 @@ function GroupCalendar.UI._EventEditor:Initialize()
 	self.EventTypeMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self, function (...) self:EventTypeMenuFunc(...) end, 150)
 	self.EventTypeMenu:SetPoint("TOPLEFT", self, "TOPLEFT", 100, -78)
 	self.EventTypeMenu:SetTitle(GroupCalendar.cEventLabel)
+	function self.EventTypeMenu.DidSelectItemWithValue(menu, value)
+		self:ClearFocus()
+
+		local _, _, eventType, textureIndex = value:find("(.*)_(.*)")
+		eventType = tonumber(eventType) or eventType
+		textureIndex = tonumber(textureIndex)
+
+		self:SetEventTypeWithDefaults(eventType, textureIndex)
+	end
 
 	self.DifficultyMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self,
 		function (menu)
@@ -139,6 +148,7 @@ function GroupCalendar.UI._EventEditor:Initialize()
 	function self.CommunityMenu.DidSelectItemWithValue(menu, value)
 		self:ClearFocus()
 		self.Event:SetClubID(value)
+		self.CommunityMenu:SetSelectedValue(value)
 	end
 
 	self.LevelRangePicker = GroupCalendar:New(GroupCalendar.UIElementsLib._LevelRangePicker, self, GroupCalendar.cLevelsLabel)
@@ -347,8 +357,6 @@ function GroupCalendar.UI._EventEditor:OnShow()
 	if not self.Event then
 		return
 	end
-	
-	GroupCalendar.EventLib:RegisterEvent("CALENDAR_UPDATE_EVENT", self.CalendarUpdateEvent, self)
 
 	self:UpdateControlsFromEvent()
 
@@ -363,12 +371,6 @@ function GroupCalendar.UI._EventEditor:OnHide()
 	if not self.Event then
 		return
 	end
-
-	GroupCalendar.EventLib:UnregisterEvent("CALENDAR_UPDATE_EVENT", self.CalendarUpdateEvent, self)
-end
-
-function GroupCalendar.UI._EventEditor:CalendarUpdateEvent()
-	self:UpdateControlsFromEvent()
 end
 
 function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
@@ -492,16 +494,13 @@ end
 
 function GroupCalendar.UI._EventEditor:LoadEventDefaults(pTemplate)
 	-- Start with the defaults
-	
 	self.Event:LoadDefaults()
 	
 	-- Overlay any templated values
-	
 	if pTemplate then
 		for vField, _ in pairs(GroupCalendar.EventTemplateFields) do
 			if type(pTemplate[vField]) == "table" then
-				if vField ~= "Attendance"
-				and vField ~= "Limits" then -- Limits should be allowed once they're actually supported, but for now ignore them
+				if vField ~= "Attendance" then
 					self.Event[vField] = GroupCalendar:DuplicateTable(pTemplate[vField], true)
 				end
 			else
@@ -515,7 +514,6 @@ function GroupCalendar.UI._EventEditor:LoadEventDefaults(pTemplate)
 		self.Event:InitializeNewEvent() -- Copy the new values to the APIs
 		
 		-- Change the event mode
-		
 		if pTemplate.CalendarType == "GUILD" or pTemplate.CalendarType == "GUILD_ANNOUNCEMENT" then
 			self.Event:SetEventMode("ANNOUNCE")
 		elseif pTemplate.CalendarType == "GUILD_EVENT" then
@@ -528,7 +526,6 @@ function GroupCalendar.UI._EventEditor:LoadEventDefaults(pTemplate)
 	end
 	
 	-- Process invites
-	
 	if not GroupCalendar.Data.Prefs.DisableInviteMemory then
 		self.Event:BeginBatchInvites()
 		
@@ -548,28 +545,8 @@ function GroupCalendar.UI._EventEditor:LoadEventDefaults(pTemplate)
 		self.Event:EndBatchInvites()
 	end
 	
-	--
-	
+	-- Force a CHANGED broadcast to ensure everything is up to date (why?)
 	GroupCalendar.BroadcastLib:Broadcast(self.Event, "CHANGED")
-end
-
-function GroupCalendar.UI._EventEditor:GetDefaultTitle()
-	local eventTypeTextures = GroupCalendar:GetEventTypeTextures(self.Event.EventType)
-	local textureInfo = eventTypeTextures[self.Event.TextureIndex]
-	
-	if not textureInfo then
-		return
-	end
-	
-	if not textureInfo.difficultyId then
-		return textureInfo.title
-	else
-		local difficultyName, instanceType, isHeroic, isChallengeMode, displayHeroic, displayMythic, toggleDifficultyID = GetDifficultyInfo(textureInfo.difficultyId)
-		if not difficultyName then
-			return textureInfo.title
-		end
-		return DUNGEON_NAME_WITH_DIFFICULTY:format(textureInfo.title, difficultyName)
-	end
 end
 
 function GroupCalendar.UI._EventEditor:GetEventTypeID()
@@ -592,7 +569,7 @@ function GroupCalendar.UI._EventEditor:GetEventTypeID()
 end
 
 function GroupCalendar.UI._EventEditor:SetEventType(eventType, textureIndex)
-	local useDefaultTitle = not self.DidLoadDefaultsFromTitle and (self.Event.Title == "" or self:GetDefaultTitle() == self.Event.Title)
+	local useDefaultTitle = not self.DidLoadDefaultsFromTitle and (self.Event.Title == "" or self.Event:GetDefaultTitle() == self.Event.Title)
 	
 	local eventType2, textureIndex2, titleTag
 	
@@ -608,7 +585,7 @@ function GroupCalendar.UI._EventEditor:SetEventType(eventType, textureIndex)
 	self.Event:SetTitleTag(titleTag)
 	
 	if useDefaultTitle then
-		local defaultTitle = self:GetDefaultTitle() or ""
+		local defaultTitle = self.Event:GetDefaultTitle() or ""
 		self.Event:SetTitle(defaultTitle)
 		self.EventTitle:SetText(defaultTitle)
 	end
@@ -753,19 +730,6 @@ function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu)
 		end
 	)
 	item.value = "DDS_"
-	
-	function self.EventTypeMenu.DidSelectItemWithValue(menu, value)
-		self:ClearFocus()
-
-		local _, _, vEventType, vTextureIndex = value:find("(.*)_(.*)")
-
-		vEventType = tonumber(vEventType) or vEventType
-		vTextureIndex = tonumber(vTextureIndex)
-
-		self:SetEventTypeWithDefaults(vEventType, vTextureIndex)
-
-		CloseDropDownMenus()
-	end
 end
 
 function GroupCalendar.UI._EventEditor:SetEventTypeWithDefaults(eventType, textureIndex)
