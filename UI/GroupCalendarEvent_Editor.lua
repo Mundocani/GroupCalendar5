@@ -118,13 +118,27 @@ function GroupCalendar.UI._EventEditor:Initialize()
 			menu:AddItemWithValue(GroupCalendar.cAnnounceMode, "ANNOUNCE")
 			menu:AddItemWithValue(GroupCalendar.cCommunityMode, "COMMUNITY")
 			menu:AddItemWithValue(GroupCalendar.cNormalMode, "NORMAL")
-		end, 220)
+		end, 125)
 	self.EventModeMenu:SetPoint("TOPLEFT", self.EventTitle, "BOTTOMLEFT", 0, -self.ItemSpacing)
 	self.EventModeMenu:SetTitle(GroupCalendar.cEventModeLabel)
 	function self.EventModeMenu.DidSelectItemWithValue(menu, value)
-		DEFAULT_CHAT_FRAME:AddMessage("Item clicked")
 		self:ClearFocus()
 		self.Event:SetEventMode(value)
+	end
+
+	self.CommunityMenu = GroupCalendar:New(GroupCalendar.UIElementsLib._TitledDropDownMenuButton, self,
+		function (menu)
+			local clubs = C_Club.GetSubscribedClubs()
+			for clubIndex, club in ipairs(clubs) do
+				if club.clubType ~= Enum.ClubType.Guild then
+					menu:AddItemWithValue(club.name, club.clubId)
+				end
+			end
+		end, 85)
+	self.CommunityMenu:SetPoint("TOPLEFT", self.EventModeMenu, "TOPRIGHT", 10, 0)
+	function self.CommunityMenu.DidSelectItemWithValue(menu, value)
+--		self:ClearFocus()
+--		self.Event:SetCommunity(value)
 	end
 
 	self.LevelRangePicker = GroupCalendar:New(GroupCalendar.UIElementsLib._LevelRangePicker, self, GroupCalendar.cLevelsLabel)
@@ -355,15 +369,22 @@ function GroupCalendar.UI._EventEditor:UpdateControlsFromEvent()
 	
 	if self.Event:IsAnnouncementEvent() then
 		self.EventModeMenu:SetSelectedValue("ANNOUNCE")
+		self.CommunityMenu:Hide()
 	elseif self.Event.CalendarType == "GUILD_EVENT" then
 		self.EventModeMenu:SetSelectedValue("SIGNUP")
+		self.CommunityMenu:Hide()
 	elseif self.Event.CalendarType == "COMMUNITY_EVENT" then
 		self.EventModeMenu:SetSelectedValue("COMMUNITY")
+		self.CommunityMenu:Show()
+		self.CommunityMenu:SetSelectedValue(self.Event.ClubID)
 	else
 		self.EventModeMenu:SetSelectedValue("NORMAL")
+		self.CommunityMenu:Hide()
 	end
 	
-	self.EventModeMenu:SetEnabled(self.IsNewEvent and vCanEdit)
+	local canChangeEventMode = self.IsNewEvent and vCanEdit
+	self.EventModeMenu:SetEnabled(canChangeEventMode)
+	self.CommunityMenu:SetEnabled(canChangeEventMode)
 	
 	-- Set title and description
 	
@@ -648,7 +669,7 @@ function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu)
 				GroupCalendar:GetTextureFile(nil, "PLAYER", nil, info.eventType),
 				nil,
 				function ()
-					return self.Event and self.Event.EventType == info.eventType
+					return self.Event and self.Event.EventType == info.eventType and not self.Event.TitleTag
 				end,
 				function (menu, value)
 					self:SetEventTypeWithDefaults(info.eventType)

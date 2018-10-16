@@ -1219,16 +1219,16 @@ end
 ----------------------------------------
 -- Get
 
-function GroupCalendar._APIEventMethods:CanSendInvite(pIgnoreOpenedEvent)
-	assert(GroupCalendar.WoWCalendar.OpenedEvent == self or pIgnoreOpenedEvent)
+function GroupCalendar._APIEventMethods:CanSendInvite(ignoreOpenedEvent)
+	assert(GroupCalendar.WoWCalendar.OpenedEvent == self or ignoreOpenedEvent)
 	
 	return GroupCalendar.WoWCalendar:CanSendInvite()
 end
 
-function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
+function GroupCalendar._APIEventMethods:GetEventInfo(ignoreOpenedEvent)
 	local changed
 	
-	if not pIgnoreOpenedEvent then
+	if not ignoreOpenedEvent then
 		assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	end
 	
@@ -1331,16 +1331,26 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 		changed = true
 	end
 	
-	if self:RefreshAttendance(pIgnoreOpenedEvent) then
+	if self:RefreshAttendance(ignoreOpenedEvent) then
 		changed = true
 	end
 	
+	-- Synchronize the club ID
+	local clubID = GroupCalendar.WoWCalendar:EventGetClubID()
+	if self.ClubID ~= clubID then
+		self.ClubID = clubID
+		changed = true
+	end
+	
+	-- Remember when this snapshot was made
 	self.CacheUpdateDate, self.CacheUpdateTime = GroupCalendar.DateLib:GetServerDateTime()
 	
+	-- Broadcast changes
 	if changed then
 		GroupCalendar.BroadcastLib:Broadcast(self, "CHANGED")
 	end
 	
+	-- If there's an original event, update it too
 	if self.OriginalEvent then
 		self.OriginalEvent:GetEventInfo(true)
 	end
@@ -1348,8 +1358,8 @@ function GroupCalendar._APIEventMethods:GetEventInfo(pIgnoreOpenedEvent)
 	return changed
 end
 
-function GroupCalendar._APIEventMethods:GetEventAttendance(pIgnoreOpenedEvent)
-	if not pIgnoreOpenedEvent then
+function GroupCalendar._APIEventMethods:GetEventAttendance(ignoreOpenedEvent)
+	if not ignoreOpenedEvent then
 		assert(GroupCalendar.WoWCalendar.OpenedEvent == self)
 	end
 	
@@ -1359,7 +1369,7 @@ function GroupCalendar._APIEventMethods:GetEventAttendance(pIgnoreOpenedEvent)
 	
 	local vChanged
 	
-	if self:RefreshAttendance(pIgnoreOpenedEvent) then
+	if self:RefreshAttendance(ignoreOpenedEvent) then
 		vChanged = true
 	end
 	
@@ -1649,8 +1659,8 @@ end
 ----------------------------------------
 -- Attendance
 
-function GroupCalendar._APIEventMethods:RefreshAttendance(pIgnoreOpenedEvent)
-	assert(GroupCalendar.WoWCalendar.OpenedEvent == self or pIgnoreOpenedEvent)
+function GroupCalendar._APIEventMethods:RefreshAttendance(ignoreOpenedEvent)
+	assert(GroupCalendar.WoWCalendar.OpenedEvent == self or ignoreOpenedEvent)
 	
 	if GroupCalendar.Debug.invites then
 		GroupCalendar:DebugMessage(NORMAL_FONT_COLOR_CODE.."RefreshAttendance, MinLevel=%s", tostring(self.MinLevel))
@@ -2647,7 +2657,7 @@ function GroupCalendar._CachedEventMethods:IsGuildWide()
 	return self.CalendarType == "GUILD_ANNOUNCEMENT"
 end
 
-function GroupCalendar._CachedEventMethods:CanSendInvite(pIgnoreOpenedEvent)
+function GroupCalendar._CachedEventMethods:CanSendInvite(ignoreOpenedEvent)
 	return false
 end
 
