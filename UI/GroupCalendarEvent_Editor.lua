@@ -669,7 +669,7 @@ function GroupCalendar.UI._EventEditor:EventTypeMenuFunc(menu)
 				GroupCalendar:GetTextureFile(nil, "PLAYER", nil, info.eventType),
 				nil,
 				function ()
-					return self.Event and self.Event.EventType == info.eventType
+					return self.Event and self.Event.EventType == info.eventType and not self.Event.TitleTag
 				end,
 				function (menu, value)
 					self:SetEventTypeWithDefaults(info.eventType)
