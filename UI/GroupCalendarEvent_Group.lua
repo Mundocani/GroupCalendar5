@@ -1027,11 +1027,12 @@ function GroupCalendar.UI._EventGroup:PlayerMenuFunc(pItem, pMenu, pMenuID)
 		local roleCode = (attendanceInfo and attendanceInfo.RoleCode) or GroupCalendar:GetPlayerDefaultRoleCode(memberInfo.Name, vClassID)
 		
 		pMenu:AddSingleChoiceGroup(
-			"Role", {
-				{GroupCalendar.cHRole, "H"},
-				{GroupCalendar.cTRole, "T"},
-				{GroupCalendar.cRRole, "R"},
-				{GroupCalendar.cMRole, "M"}
+			"Role",
+			{
+				{title = GroupCalendar.cHRole, value = "H"},
+				{title = GroupCalendar.cTRole, value = "T"},
+				{title = GroupCalendar.cRRole, value = "R"},
+				{title = GroupCalendar.cMRole, value = "M"}
 			},
 			-- get
 			function ()
