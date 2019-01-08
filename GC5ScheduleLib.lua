@@ -1365,7 +1365,7 @@ function GroupCalendar._APIEventMethods:GetEventInfo(ignoreOpenedEvent)
 	end
 	
 	-- Synchronize the club ID
-	local clubID = GroupCalendar.WoWCalendar:EventGetClubID()
+	local clubID = GroupCalendar.WoWCalendar:EventGetClubId()
 	if self.ClubID ~= clubID then
 		self.ClubID = clubID
 		changed = true

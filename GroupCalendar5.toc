@@ -1,6 +1,6 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: Group Calendar 5
-## Version: 5.10
+## Version: 5.10.1
 ## Notes: Enhancements for in-game calendar, (c) 2005 - 2018 John Stephen
 
 ## Title-zhTW: |cFFFF6600團體行事曆|r Group Calendar 5
